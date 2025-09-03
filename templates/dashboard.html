@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Mobile Sales{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <h2>
+                <i class="bi bi-speedometer2"></i> Dashboard
+                <small class="text-muted">Bem-vindo, {{ session.vendedor }}</small>
+            </h2>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stats-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-bell-fill" style="font-size: 2rem;"></i>
+                    <h3 class="mt-2">{{ avisos|length }}</h3>
+                    <p class="mb-0">Avisos Pendentes</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stats-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="card-body text-center">
+                    <i class="bi bi-calendar-check" style="font-size: 2rem;"></i>
+                    <h3 class="mt-2">{{ session.login_time[:10] if session.login_time else 'Hoje' }}</h3>
+                    <p class="mb-0">Último Login</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stats-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <div class="card-body text-center">
+                    <i class="bi bi-cart-check-fill" style="font-size: 2rem;"></i>
+                    <h3 class="mt-2">Ver</h3>
+                    <p class="mb-0">Pedidos</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stats-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                <div class="card-body text-center">
+                    <i class="bi bi-people-fill" style="font-size: 2rem;"></i>
+                    <h3 class="mt-2">Ver</h3>
+                    <p class="mb-0">Clientes</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Avisos/Lembretes -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-exclamation-triangle-fill"></i> 
+                        Avisos e Lembretes 
+                        {% if avisos %}
+                            <span class="badge bg-white text-danger">{{ avisos|length }}</span>
+                        {% endif %}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if avisos %}
+                        <div class="accordion" id="avisosAccordion">
+                            {% for aviso in avisos %}
+                                {% set msg_id = aviso[1] %}
+                                {% set remetente = aviso[4] or aviso[2] %}
+                                {% set mensagem = aviso[0] %}
+                                {% set tipo_msg = aviso[5] %}
+                                {% set npedido = aviso[6] %}
+                                {% set data_registo = aviso[7] %}
+                                
+                                <div class="accordion-item mb-2">
+                                    <h2 class="accordion-header" id="heading{{ loop.index }}">
+                                        <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" 
+                                                type="button" 
+                                                data-bs-toggle="collapse" 
+                                                data-bs-target="#collapse{{ loop.index }}">
+                                            <div class="d-flex justify-content-between w-100 me-3">
+                                                <div>
+                                                    <strong class="text-danger">
+                                                        <i class="bi bi-person-fill"></i> {{ remetente }}
+                                                    </strong>
+                                                    {% if tipo_msg == 5 %}
+                                                        <span class="badge bg-warning ms-2">
+                                                            <i class="bi bi-cart"></i> Pedido #{{ npedido }}
+                                                        </span>
+                                                    {% endif %}
+                                                </div>
+                                                <small class="text-muted">
+                                                    {{ data_registo.strftime('%d/%m/%Y %H:%M') if data_registo else '' }}
+                                                </small>
+                                            </div>
+                                        </button>
+                                    </h2>
+                                    <div id="collapse{{ loop.index }}" 
+                                         class="accordion-collapse collapse {% if loop.first %}show{% endif %}"
+                                         data-bs-parent="#avisosAccordion">
+                                        <div class="accordion-body">
+                                            <div class="alert alert-info mb-3">
+                                                <i class="bi bi-info-circle"></i> {{ mensagem }}
+                                            </div>
+                                            
+                                            {% if tipo_msg == 5 and npedido %}
+                                                <div class="card bg-light">
+                                                    <div class="card-body">
+                                                        <h6>Detalhes do Pedido #{{ npedido }}</h6>
+                                                        <div class="row mt-3">
+                                                            <div class="col-md-6">
+                                                                <a href="{{ url_for('pedidos') }}" 
+                                                                   class="btn btn-sm btn-primary">
+                                                                    <i class="bi bi-eye"></i> Ver Pedido
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                            
+                                            <div class="mt-3 d-flex gap-2">
+                                                <a href="{{ url_for('marcar_aviso_lido', msg_id=msg_id) }}" 
+                                                   class="btn btn-success btn-sm">
+                                                    <i class="bi bi-check-circle"></i> Marcar como Lido
+                                                </a>
+                                                {% if tipo_msg == 5 %}
+                                                    <button class="btn btn-warning btn-sm">
+                                                        <i class="bi bi-pencil"></i> Alterar Pedido
+                                                    </button>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mt-4">
+                            <button class="btn btn-danger" onclick="marcarTodosLidos()">
+                                <i class="bi bi-check-all"></i> Limpar Todos os Avisos
+                            </button>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-check-circle text-success" style="font-size: 4rem;"></i>
+                            <h4 class="mt-3">Sem avisos pendentes</h4>
+                            <p class="text-muted">Todos os avisos foram processados</p>
+                            <a href="{{ url_for('menu') }}" class="btn btn-primary mt-3">
+                                <i class="bi bi-grid-3x3-gap"></i> Ir para o Menu
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-lightning-fill"></i> Ações Rápidas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 col-6 mb-3">
+                            <a href="{{ url_for('novo_pedido') }}" class="btn btn-success w-100 btn-custom">
+                                <i class="bi bi-plus-circle"></i><br>Novo Pedido
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <a href="{{ url_for('clientes') }}" class="btn btn-info w-100 btn-custom text-white">
+                                <i class="bi bi-person-plus"></i><br>Novo Cliente
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <a href="{{ url_for('artigos') }}" class="btn btn-warning w-100 btn-custom">
+                                <i class="bi bi-box-seam"></i><br>Ver Artigos
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <a href="{{ url_for('estatisticas') }}" class="btn btn-primary w-100 btn-custom">
+                                <i class="bi bi-graph-up"></i><br>Estatísticas
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function marcarTodosLidos() {
+        if (confirm('Tem certeza que deseja marcar todos os avisos como lidos?')) {
+            // Aqui implementaria a lógica para marcar todos como lidos
+            {% for aviso in avisos %}
+                window.location.href = "{{ url_for('marcar_aviso_lido', msg_id=aviso[1]) }}";
+            {% endfor %}
+        }
+    }
+
+    // Auto-refresh dashboard every 5 minutes
+    setTimeout(function() {
+        location.reload();
+    }, 300000);
+</script>
+{% endblock %}

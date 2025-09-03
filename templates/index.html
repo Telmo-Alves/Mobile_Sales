@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Mobile Sales - Flask + Firebird</h1>
+<p>Aplicação conectada ao servidor Firebird em 192.168.0.201</p>
+
+<div class="mt-4">
+    <a href="/dados" class="btn btn-primary">Ver Dados (Teste)</a>
+    <a href="/tabelas" class="btn btn-success">Ver Tabelas</a>
+</div>
+
+<div class="alert alert-info mt-4">
+    <strong>Status:</strong> Conexão ao Firebird funcionando ✅
+</div>
+{% endblock %}

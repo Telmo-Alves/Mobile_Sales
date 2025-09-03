@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+
+{% block title %}Menu Principal - Mobile Sales{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <h2>
+                <i class="bi bi-grid-3x3-gap"></i> Menu Principal
+            </h2>
+            <p class="text-muted">Selecione uma opção para continuar</p>
+        </div>
+    </div>
+
+    <!-- Menu Grid -->
+    <div class="row">
+        <!-- Vendas Section -->
+        <div class="col-12 mb-3">
+            <h4 class="text-primary">
+                <i class="bi bi-cart-fill"></i> Vendas e Pedidos
+            </h4>
+        </div>
+        
+        <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="card menu-card" onclick="window.location.href='{{ url_for('novo_pedido') }}'">
+                <div class="card-body text-center">
+                    <i class="bi bi-cart-plus text-success"></i>
+                    <h5 class="mt-2">Novo Pedido</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="card menu-card" onclick="window.location.href='{{ url_for('pedidos') }}'">
+                <div class="card-body text-center">
+                    <i class="bi bi-list-check text-primary"></i>
+                    <h5 class="mt-2">Listar Pedidos</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="card menu-card" onclick="alert('Funcionalidade em desenvolvimento')">
+                <div class="card-body text-center">
+                    <i class="bi bi-pencil-square text-warning"></i>
+                    <h5 class="mt-2">Alterar Pedido</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="card menu-card" onclick="alert('Funcionalidade em desenvolvimento')">
+                <div class="card-body text-center">
+                    <i class="bi bi-file-earmark-text text-info"></i>
+                    <h5 class="mt-2">Orçamentos</h5>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clientes Section -->
+        <div class="col-12 mb-3 mt-3">
+            <h4 class="text-primary">
+                <i class="bi bi-people-fill"></i> Gestão de Clientes
+            </h4>
+        </div>
+
+        <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="card menu-card" onclick="window.location.href='{{ url_for('clientes') }}'">
+                <div class="card-body text-center">
+                    <i class="bi bi-people text-primary"></i>
+                    <h5 class="mt-2">Listar Clientes</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="card menu-card" onclick="alert('Funcionalidade em desenvolvimento')">
+                <div class="card-body text-center">
+                    <i class="bi bi-person-plus text-success"></i>
+                    <h5 class="mt-2">Novo Cliente</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="card menu-card" onclick="alert('Funcionalidade em desenvolvimento')">
+                <div class="card-body text-center">
+                    <i class="bi bi-person-lines-fill text-warning"></i>
+                    <h5 class="mt-2">Ficha Cliente</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="card menu-card" onclick="alert('Funcionalidade em desenvolvimento')">
+                <div class="card-body text-center">
+                    <i class="bi bi-credit-card text-danger"></i>
+                    <h5 class="mt-2">Conta Corrente</h5>
+                </div>
+            </div>
+        </div>
+
+        <!-- Artigos Section -->
+        <div class="col-12 mb-3 mt-3">
+            <h4 class="text-primary">
+                <i class="bi bi-box-seam-fill"></i> Artigos e Stock
+            </h4>
+        </div>
+
+        <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="card menu-card" onclick="window.location.href='{{ url_for('artigos') }}'">
+                <div class="card-body text-center">
+                    <i class="bi bi-box-seam text-primary"></i>
+                    <h5 class="mt-2">Listar Artigos</h5>
+                </div>
+            </div>
+        </div>
+
+				<div class="col-lg-3 col-md-4 col-6 mb-4">
+						<div class="card menu-card" onclick="window.location.href='{{ url_for('existencias') }}'">
+								<div class="card-body text-center">
+										<i class="bi bi-search text-success"></i>
+										<h5 class="mt-2">Existências</h5>
+								</div>
+						</div>
+				</div>
+
+        <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="card menu-card" onclick="alert('Funcionalidade em desenvolvimento')">
+                <div class="card-body text-center">
+                    <i class="bi bi-tags text-warning"></i>
+                    <h5 class="mt-2">Preços</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="card menu-card" onclick="alert('Funcionalidade em desenvolvimento')">
+                <div class="card-body text-center">
+                    <i class="bi bi-upc-scan text-success"></i>
+                    <h5 class="mt-2">Lotes</h5>
+                </div>
+            </div>
+        </div>
+
+        <!-- Relatórios Section -->
+        <div class="col-12 mb-3 mt-3">
+            <h4 class="text-primary">
+                <i class="bi bi-graph-up"></i> Relatórios e Análises
+            </h4>
+        </div>
+
+        <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="card menu-card" onclick="window.location.href='{{ url_for('estatisticas') }}'">
+                <div class="card-body text-center">
+                    <i class="bi bi-bar-chart-line text-success"></i>
+                    <h5 class="mt-2">Estatísticas</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="card menu-card" onclick="alert('Funcionalidade em desenvolvimento')">
+                <div class="card-body text-center">
+                    <i class="bi bi-calendar3 text-primary"></i>
+                    <h5 class="mt-2">Vendas do Dia</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="card menu-card" onclick="alert('Funcionalidade em desenvolvimento')">
+                <div class="card-body text-center">
+                    <i class="bi bi-trophy text-warning"></i>
+                    <h5 class="mt-2">Objetivos</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="card menu-card" onclick="alert('Funcionalidade em desenvolvimento')">
+                <div class="card-body text-center">
+                    <i class="bi bi-cash-stack text-success"></i>
+                    <h5 class="mt-2">Comissões</h5>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comunicação Section -->
+        <div class="col-12 mb-3 mt-3">
+            <h4 class="text-primary">
+                <i class="bi bi-chat-dots-fill"></i> Comunicação
+            </h4>
+        </div>
+
+        <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="card menu-card" onclick="window.location.href='{{ url_for('dashboard') }}'">
+                <div class="card-body text-center">
+                    <i class="bi bi-bell text-danger"></i>
+                    <h5 class="mt-2">Avisos</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="card menu-card" onclick="alert('Funcionalidade em desenvolvimento')">
+                <div class="card-body text-center">
+                    <i class="bi bi-envelope text-info"></i>
+                    <h5 class="mt-2">Mensagens</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="card menu-card" onclick="alert('Funcionalidade em desenvolvimento')">
+                <div class="card-body text-center">
+                    <i class="bi bi-calendar-event text-primary"></i>
+                    <h5 class="mt-2">Agenda</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="card menu-card" onclick="alert('Funcionalidade em desenvolvimento')">
+                <div class="card-body text-center">
+                    <i class="bi bi-sticky text-warning"></i>
+                    <h5 class="mt-2">Notas</h5>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sistema Section -->
+        <div class="col-12 mb-3 mt-3">
+            <h4 class="text-primary">
+                <i class="bi bi-gear-fill"></i> Sistema
+            </h4>
+        </div>
+
+        <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="card menu-card" onclick="alert('Funcionalidade em desenvolvimento')">
+                <div class="card-body text-center">
+                    <i class="bi bi-cloud-download text-primary"></i>
+                    <h5 class="mt-2">Sincronizar</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="card menu-card" onclick="alert('Funcionalidade em desenvolvimento')">
+                <div class="card-body text-center">
+                    <i class="bi bi-printer text-secondary"></i>
+                    <h5 class="mt-2">Impressão</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="card menu-card" onclick="alert('Funcionalidade em desenvolvimento')">
+                <div class="card-body text-center">
+                    <i class="bi bi-sliders text-warning"></i>
+                    <h5 class="mt-2">Configurações</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="card menu-card" onclick="window.location.href='{{ url_for('logout') }}'">
+                <div class="card-body text-center">
+                    <i class="bi bi-box-arrow-right text-danger"></i>
+                    <h5 class="mt-2">Sair</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .menu-card {
+        background: white;
+        border: 2px solid #f0f0f0;
+    }
+    
+    .menu-card:hover {
+        border-color: var(--secondary-color);
+        cursor: pointer;
+    }
+    
+    .menu-card i {
+        transition: transform 0.3s;
+    }
+    
+    .menu-card:hover i {
+        transform: scale(1.2) rotate(5deg);
+    }
+</style>
+{% endblock %}

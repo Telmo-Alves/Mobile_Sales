@@ -1,0 +1,414 @@
+{% extends "base.html" %}
+
+{% block title %}Resultados - Existências{% endblock %}
+
+{% block extra_css %}
+<style>
+    .results-container {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-top: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        overflow-x: auto;
+    }
+
+    .header-info {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+
+    /* Layout em linha única */
+    .item-row {
+        padding: 15px 10px;
+        border-bottom: 2px dashed #e0e0e0;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .item-row:hover {
+        background: rgba(52, 152, 219, 0.05);
+        transform: translateX(5px);
+    }
+    
+    /* Remover a borda do último elemento wrapper */
+    .article-wrapper:last-child .item-row {
+        border-bottom: none;
+    }
+    
+    /* A borda agora vai para o container de detalhes se estiver aberto */
+     .article-wrapper:last-child .detalhes-lote-container {
+        border-bottom: none;
+    }
+
+    /* Descritivo do artigo maior */
+    .item-descricao {
+        flex: 1;
+        min-width: 0; /* Permite truncate no texto */
+    }
+
+    .item-link {
+        text-decoration: none;
+        font-weight: bold;
+        font-size: 15px;
+        display: block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        cursor: pointer; /* Adicionado para indicar que é clicável */
+    }
+
+    /* Container das estatísticas alinhadas */
+    .item-stats-container {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-shrink: 0;
+    }
+
+    .stats-column {
+        min-width: 85px;
+        text-align: right;
+        padding: 5px 6px;
+        border-radius: 8px;
+        background: rgba(0,0,0,0.02);
+        transition: all 0.2s;
+    }
+
+    .item-row:hover .stats-column {
+        background: rgba(0,0,0,0.04);
+    }
+
+    .stats-label {
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: #6c757d;
+        margin-bottom: 3px;
+        letter-spacing: 0.3px;
+    }
+
+    .stats-value {
+        font-size: 16px;
+        font-weight: bold;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .stats-exist .stats-value { color: #155724; }
+    .stats-enc .stats-value { color: #856404; }
+    .stats-disp .stats-value { color: #084298; }
+
+    /* Alerta de substituto */
+    .substituto-alert {
+        color: #dc3545 !important;
+        font-weight: bold;
+        font-size: 12px;
+        white-space: nowrap;
+        margin-left: 10px;
+    }
+
+    .substituto-alert:hover {
+        text-decoration: underline;
+    }
+
+    /* Cores alternadas como no PHP original */
+    .item-row:nth-child(3n+1) .item-link { color: #0066cc; }
+    .item-row:nth-child(3n+2) .item-link { color: #28a745; }
+    .item-row:nth-child(3n+3) .item-link { color: #000000; }
+
+    /* Área de sem resultados */
+    .no-results {
+        text-align: center;
+        padding: 40px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        margin: 20px 0;
+    }
+
+    .no-results h3 {
+        color: #dc3545;
+        margin-bottom: 10px;
+    }
+
+    .no-results p {
+        color: #dc3545;
+        margin: 5px 0;
+    }
+
+    /* Tabela resumo no topo (Restaurado) */
+    .summary-table {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+
+    .summary-table .row {
+        font-size: 14px;
+    }
+
+    .summary-value {
+        font-weight: bold;
+        font-size: 18px;
+    }
+
+    /* Botões (Restaurado) */
+    .btn-voltar {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 25px;
+        font-weight: 600;
+        text-transform: uppercase;
+        transition: all 0.3s;
+    }
+
+    .btn-voltar:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        color: white;
+    }
+
+    /* Estilos para a área de detalhes expansível (Novo) */
+    .detalhes-lote-container {
+        display: none; /* Oculto por defeito */
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-bottom: 2px dashed #e0e0e0;
+        animation: fadeIn 0.5s;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .detalhes-lote-container .loading-spinner {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        color: #6c757d;
+    }
+    
+    /* Responsividade (Restaurado) */
+    @media (max-width: 768px) {
+        .item-row { flex-direction: row; align-items: center; gap: 10px; }
+        .item-descricao { flex: 1; min-width: 0; max-width: 45%; }
+        .item-link { font-size: 13px; }
+        .item-stats-container { gap: 4px; flex: 1; justify-content: flex-end; }
+        .stats-column { min-width: 68px; padding: 4px 5px; }
+        .stats-label { font-size: 9px; }
+        .stats-value { font-size: 13px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="text-center mb-3">
+        <a href="{{ url_for('menu') }}" class="btn btn-voltar" style="width: 214px; font-size: 22px;">
+            <i class="bi bi-grid-3x3-gap"></i> MENU
+        </a>
+    </div>
+
+    <div class="header-info">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h4 class="mb-0"><i class="bi bi-search"></i> Resultados da Pesquisa</h4>
+                <small>Código: {{ codigo_pesquisa }}</small>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <a href="{{ url_for('existencias') }}" class="btn btn-light btn-sm">
+                    <i class="bi bi-arrow-left"></i> Nova Consulta
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="results-container">
+        {% if resultados %}
+            {% if resultados|length > 5 %}
+            <div class="summary-table">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="text-muted">Artigos</div>
+                        <div class="summary-value text-primary">{{ resultados|length }}</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="text-muted">Total Stock</div>
+                        <div class="summary-value text-success">{{ '{:,.0f}'.format(resultados|map(attribute='3')|map('default', 0)|sum) }}</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="text-muted">Disponível</div>
+                        <div class="summary-value text-info">{{ '{:,.0f}'.format(resultados|map(attribute='5')|map('default', 0)|sum) }}</div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% for item in resultados %}
+                {% set descricao = item[0][:150] %}
+                {% set codigo = item[1] %}
+                {% set codigo_substituto = item[2] %}
+                {% set exist = item[3] or 0 %}
+                {% set enc_cli = item[4] or 0 %}
+                {% set disponivel = item[5] or 0 %}
+                
+                <div class="article-wrapper">
+                    <div class="item-row">
+                        <div class="item-descricao">
+                            <a class="item-link toggle-detalhes" 
+                               data-codigo="{{ codigo }}" 
+                               data-target="#detalhes-{{ codigo.replace('.', '-') }}"
+                               title="{{ item[0] }}">
+                                {{ descricao }}
+                            </a>
+                            
+                            {% if codigo_substituto and codigo_substituto != '' %}
+                                <a href="{{ url_for('existencias_detalhes', codigo=codigo_substituto) }}?enc_forn={{ enc_forn }}" class="substituto-alert d-none d-md-inline">
+                                    <i class="bi bi-exclamation-triangle"></i> SUBSTITUTO: {{ codigo_substituto }}
+                                </a>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="item-stats-container">
+                            <div class="stats-column stats-exist">
+                                <div class="stats-label">Existência</div>
+                                <div class="stats-value">{{ '{:,.2f}'.format(exist) }}</div>
+                            </div>
+                            <div class="stats-column stats-enc">
+                                <div class="stats-label">Encomendas</div>
+                                <div class="stats-value">{{ '{:,.2f}'.format(enc_cli) }}</div>
+                            </div>
+                            <div class="stats-column stats-disp">
+                                <div class="stats-label">Disponível</div>
+                                <div class="stats-value">{{ '{:,.2f}'.format(disponivel) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="detalhes-{{ codigo.replace('.', '-') }}" class="detalhes-lote-container">
+                        </div>
+                </div>
+            {% endfor %}
+            
+        {% elif artigos_sem_stock %}
+            <div class="no-results">
+                <h3>ARTIGO SEM EXISTÊNCIA</h3>
+                <p>E</p>
+                <p>SEM PEDIDOS EFECTUADOS A FORNECEDOR</p>
+                <div class="mt-4">
+                    <p class="text-muted">Artigos encontrados sem stock:</p>
+                    {% for artigo in artigos_sem_stock[:10] %}
+                        <small class="d-block text-muted">{{ artigo[0] }} - {{ artigo[1][:80] }}</small>
+                    {% endfor %}
+                </div>
+            </div>
+            
+        {% else %}
+            <div class="no-results">
+                <h3>ARTIGO INEXISTENTE</h3>
+                <p>VERIFIQUE SELEÇÃO</p>
+                <div class="mt-3"><small class="text-muted">Código pesquisado: <strong>{{ codigo_pesquisa }}</strong></small></div>
+            </div>
+        {% endif %}
+    </div>
+
+    {% if resultados %}
+        <div class="text-center mt-4">
+            <button class="btn btn-outline-primary" onclick="window.print()">
+                <i class="bi bi-printer"></i> Imprimir
+            </button>
+            <button class="btn btn-outline-success" onclick="exportarExcel()">
+                <i class="bi bi-file-excel"></i> Exportar Excel
+            </button>
+            {% if resultados|length > 20 %}
+            <button class="btn btn-outline-info" onclick="scrollToTop()">
+                <i class="bi bi-arrow-up"></i> Topo
+            </button>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    // Funções originais restauradas
+    function exportarExcel() {
+        alert('Funcionalidade de exportação em desenvolvimento');
+    }
+
+    function scrollToTop() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Event listeners originais restaurados
+    document.querySelectorAll('.item-link').forEach(link => {
+        link.addEventListener('mouseenter', function() {
+            if (!this.classList.contains('toggle-detalhes')) { // Não aplicar sublinhado no link principal
+                 this.style.textDecoration = 'underline';
+            }
+        });
+        link.addEventListener('mouseleave', function() {
+            this.style.textDecoration = 'none';
+        });
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Home') {
+            scrollToTop();
+        }
+    });
+
+    // Novo script para a funcionalidade de expandir/recolher
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.toggle-detalhes').forEach(link => {
+            link.addEventListener('click', function(event) {
+                event.preventDefault();
+
+                const codigoArtigo = this.dataset.codigo;
+                const targetSelector = this.dataset.target;
+                const detalhesContainer = document.querySelector(targetSelector);
+
+                if (!detalhesContainer) return;
+
+                if (detalhesContainer.style.display === 'block') {
+                    detalhesContainer.style.display = 'none';
+                    return;
+                }
+
+                detalhesContainer.style.display = 'block';
+
+                if (detalhesContainer.dataset.loaded === 'true') {
+                    return;
+                }
+
+                detalhesContainer.innerHTML = `
+                    <div class="loading-spinner">
+                        <div class="spinner-border spinner-border-sm" role="status"></div>
+                        <span class="ms-2">A carregar detalhes...</span>
+                    </div>`;
+
+                fetch(`/api/detalhes_lote/${codigoArtigo}`)
+                    .then(response => response.text())
+                    .then(html => {
+                        detalhesContainer.innerHTML = html;
+                        detalhesContainer.dataset.loaded = 'true';
+                    })
+                    .catch(error => {
+                        console.error('Erro ao buscar detalhes:', error);
+                        detalhesContainer.innerHTML = `<div class="p-3 text-center text-danger">Erro ao carregar detalhes.</div>`;
+                        delete detalhesContainer.dataset.loaded;
+                    });
+            });
+        });
+    });
+</script>
+{% endblock %}

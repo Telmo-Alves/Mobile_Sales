@@ -1,0 +1,438 @@
+{% extends "base.html" %}
+
+{% block title %}Estatísticas - Mobile Sales{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+    }
+
+    .metric-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        transition: all 0.3s;
+        height: 100%;
+    }
+
+    .metric-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin: 10px 0;
+    }
+
+    .metric-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .metric-change {
+        font-size: 0.85rem;
+        padding: 5px 10px;
+        border-radius: 20px;
+        display: inline-block;
+    }
+
+    .metric-change.positive {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .metric-change.negative {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .chart-container {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        margin-bottom: 20px;
+    }
+
+    .progress-ring {
+        transform: rotate(-90deg);
+    }
+
+    .progress-ring-circle {
+        transition: stroke-dashoffset 0.35s;
+        stroke: #667eea;
+        stroke-width: 4;
+        fill: transparent;
+    }
+
+    .progress-ring-bg {
+        stroke: #f0f0f0;
+        stroke-width: 4;
+        fill: transparent;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Stats Header -->
+    <div class="stats-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1>
+                    <i class="bi bi-graph-up"></i> Estatísticas
+                </h1>
+                <p class="mb-0 opacity-75">
+                    Análise de desempenho de vendas - {{ session.vendedor }}
+                </p>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <div class="btn-group" role="group">
+                    <button class="btn btn-light active" onclick="setPeriod('month')">Mês</button>
+                    <button class="btn btn-light" onclick="setPeriod('week')">Semana</button>
+                    <button class="btn btn-light" onclick="setPeriod('day')">Hoje</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="metric-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="metric-label">Total de Pedidos</div>
+                        <div class="metric-value text-primary">
+                            {{ stats.total_pedidos or 0 }}
+                        </div>
+                        <span class="metric-change positive">
+                            <i class="bi bi-arrow-up"></i> +12%
+                        </span>
+                    </div>
+                    <div class="text-primary opacity-25">
+                        <i class="bi bi-cart-check" style="font-size: 3rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="metric-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="metric-label">Valor Total</div>
+                        <div class="metric-value text-success">
+                            €{{ '{:,.0f}'.format(stats.valor_total or 0) }}
+                        </div>
+                        <span class="metric-change positive">
+                            <i class="bi bi-arrow-up"></i> +8%
+                        </span>
+                    </div>
+                    <div class="text-success opacity-25">
+                        <i class="bi bi-cash-stack" style="font-size: 3rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="metric-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="metric-label">Pedidos do Mês</div>
+                        <div class="metric-value text-info">
+                            {{ stats.pedidos_mes or 0 }}
+                        </div>
+                        <span class="metric-change negative">
+                            <i class="bi bi-arrow-down"></i> -3%
+                        </span>
+                    </div>
+                    <div class="text-info opacity-25">
+                        <i class="bi bi-calendar-month" style="font-size: 3rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="metric-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="metric-label">Valor Mensal</div>
+                        <div class="metric-value text-warning">
+                            €{{ '{:,.0f}'.format(stats.valor_mes or 0) }}
+                        </div>
+                        <span class="metric-change positive">
+                            <i class="bi bi-arrow-up"></i> +15%
+                        </span>
+                    </div>
+                    <div class="text-warning opacity-25">
+                        <i class="bi bi-graph-up-arrow" style="font-size: 3rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row">
+        <!-- Sales Chart -->
+        <div class="col-lg-8 mb-4">
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="bi bi-bar-chart-line"></i> Evolução de Vendas
+                </h5>
+                <canvas id="salesChart" height="100"></canvas>
+            </div>
+        </div>
+
+        <!-- Progress Chart -->
+        <div class="col-lg-4 mb-4">
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="bi bi-bullseye"></i> Objetivo Mensal
+                </h5>
+                <div class="text-center py-4">
+                    <svg width="200" height="200" class="mx-auto">
+                        <circle cx="100" cy="100" r="90" class="progress-ring-bg"></circle>
+                        <circle cx="100" cy="100" r="90" class="progress-ring-circle progress-ring"
+                                stroke-dasharray="565.48" 
+                                stroke-dashoffset="169.64"></circle>
+                    </svg>
+                    <div class="mt-3">
+                        <h2 class="text-primary">70%</h2>
+                        <p class="text-muted">€{{ '{:,.0f}'.format((stats.valor_mes or 0)) }} de €10,000</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Stats -->
+    <div class="row">
+        <!-- Top Products -->
+        <div class="col-lg-6 mb-4">
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="bi bi-trophy"></i> Top Produtos
+                </h5>
+                <div class="table-responsive">
+                    <table class="table table-borderless">
+                        <tbody>
+                            <tr>
+                                <td width="50">
+                                    <span class="badge bg-warning">1º</span>
+                                </td>
+                                <td>Produto A</td>
+                                <td class="text-end">
+                                    <strong>€2,500</strong>
+                                </td>
+                                <td width="100">
+                                    <div class="progress" style="height: 10px;">
+                                        <div class="progress-bar bg-warning" style="width: 85%"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <span class="badge bg-secondary">2º</span>
+                                </td>
+                                <td>Produto B</td>
+                                <td class="text-end">
+                                    <strong>€2,100</strong>
+                                </td>
+                                <td>
+                                    <div class="progress" style="height: 10px;">
+                                        <div class="progress-bar bg-secondary" style="width: 70%"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <span class="badge bg-primary">3º</span>
+                                </td>
+                                <td>Produto C</td>
+                                <td class="text-end">
+                                    <strong>€1,800</strong>
+                                </td>
+                                <td>
+                                    <div class="progress" style="height: 10px;">
+                                        <div class="progress-bar bg-primary" style="width: 60%"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Clients -->
+        <div class="col-lg-6 mb-4">
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="bi bi-people"></i> Top Clientes
+                </h5>
+                <div class="table-responsive">
+                    <table class="table table-borderless">
+                        <tbody>
+                            <tr>
+                                <td width="50">
+                                    <div class="avatar-circle bg-primary text-white">
+                                        <i class="bi bi-person"></i>
+                                    </div>
+                                </td>
+                                <td>
+                                    <strong>Cliente ABC</strong>
+                                    <br>
+                                    <small class="text-muted">15 pedidos</small>
+                                </td>
+                                <td class="text-end">
+                                    <strong class="text-success">€3,200</strong>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="avatar-circle bg-success text-white">
+                                        <i class="bi bi-building"></i>
+                                    </div>
+                                </td>
+                                <td>
+                                    <strong>Empresa XYZ</strong>
+                                    <br>
+                                    <small class="text-muted">12 pedidos</small>
+                                </td>
+                                <td class="text-end">
+                                    <strong class="text-success">€2,800</strong>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="avatar-circle bg-info text-white">
+                                        <i class="bi bi-shop"></i>
+                                    </div>
+                                </td>
+                                <td>
+                                    <strong>Loja 123</strong>
+                                    <br>
+                                    <small class="text-muted">8 pedidos</small>
+                                </td>
+                                <td class="text-end">
+                                    <strong class="text-success">€1,900</strong>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Options -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="mb-3">Exportar Relatórios</h5>
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-outline-primary" onclick="exportReport('pdf')">
+                            <i class="bi bi-file-pdf"></i> PDF
+                        </button>
+                        <button class="btn btn-outline-success" onclick="exportReport('excel')">
+                            <i class="bi bi-file-excel"></i> Excel
+                        </button>
+                        <button class="btn btn-outline-info" onclick="exportReport('csv')">
+                            <i class="bi bi-file-text"></i> CSV
+                        </button>
+                        <button class="btn btn-outline-warning" onclick="printReport()">
+                            <i class="bi bi-printer"></i> Imprimir
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .avatar-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Sales Chart
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    const salesChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago'],
+            datasets: [{
+                label: 'Vendas 2025',
+                data: [3000, 3500, 3200, 4100, 3900, 4500, 4200, {{ stats.valor_mes or 0 }}],
+                borderColor: '#667eea',
+                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '€' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    function setPeriod(period) {
+        // Update period filter
+        document.querySelectorAll('.btn-group .btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        event.target.classList.add('active');
+        
+        // Reload data for selected period
+        console.log('Loading data for:', period);
+    }
+
+    function exportReport(format) {
+        alert('Exportar relatório em formato: ' + format.toUpperCase());
+    }
+
+    function printReport() {
+        window.print();
+    }
+</script>
+{% endblock %}

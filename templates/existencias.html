@@ -1,0 +1,321 @@
+{% extends "base.html" %}
+
+{% block title %}Existências - Mobile Sales{% endblock %}
+
+{% block extra_css %}
+<style>
+    .filter-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+
+    .filter-section {
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .filter-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .filter-label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-select {
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 10px 15px;
+        font-size: 15px;
+        transition: all 0.3s;
+    }
+
+    .form-select:focus {
+        border-color: #3498db;
+        box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+    }
+
+    .btn-action {
+        min-width: 120px;
+        margin: 5px;
+        padding: 12px 20px;
+        border-radius: 25px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.3s;
+    }
+
+    .btn-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    .header-icon {
+        font-size: 2.5rem;
+        color: #3498db;
+        margin-right: 15px;
+    }
+
+    .info-badge {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        display: inline-block;
+    }
+
+    @media (max-width: 768px) {
+        .btn-action {
+            width: 100%;
+            margin: 5px 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-boxes header-icon"></i>
+                <div>
+                    <h2 class="mb-0">Consulta de Existências</h2>
+                    <p class="text-muted mb-0">Pesquise e consulte o stock disponível</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulário de Filtros -->
+    <div class="filter-card">
+        <form method="POST" action="{{ url_for('existencias_consulta') }}" id="formExistencias">
+            
+            <!-- Seção 1: Tipo de Artigo e Composição -->
+            <div class="filter-section">
+                <h5 class="text-primary mb-3">
+                    <i class="bi bi-filter"></i> Filtros Principais
+                </h5>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="filter-label">Tipo de Artigo</label>
+                        <select class="form-select" name="tipo_artigo" id="tipo_artigo">
+                            <option value="">-- Selecione --</option>
+                            {% for item in tipo_artigo %}
+                                <option value="{{ item[0] }}" {% if item[2] == 1 %}selected{% endif %}>
+                                    {{ item[1] }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label class="filter-label">Composição</label>
+                        <select class="form-select" name="composicao" id="composicao">
+                            <option value="">-- Todas --</option>
+                            {% for item in composicoes %}
+                                <option value="{{ item[0] }}" {% if item[2] == 1 %}selected{% endif %}>
+                                    {{ item[1] }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção 2: Características -->
+            <div class="filter-section">
+                <h5 class="text-primary mb-3">
+                    <i class="bi bi-gear"></i> Características
+                </h5>
+                
+                <div class="row">
+                    <div class="col-md-3 col-6 mb-3">
+                        <label class="filter-label">Tipo NE</label>
+                        <select class="form-select" name="tipo_ne" id="tipo_ne">
+                            <option value="">-- Todos --</option>
+                            {% for item in tipo_ne %}
+                                <option value="{{ item[0] }}" {% if item[2] == 12 %}selected{% endif %}>
+                                    {{ item[1] }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3 col-6 mb-3">
+                        <label class="filter-label">Nº Cabos</label>
+                        <select class="form-select" name="n_cabos" id="n_cabos">
+                            <option value="">-- Todos --</option>
+                            {% for item in n_cabos %}
+                                <option value="{{ item[0] }}" {% if item[2] == 1 %}selected{% endif %}>
+                                    {{ item[1] }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3 col-6 mb-3">
+                        <label class="filter-label">Enc. Fornecedor</label>
+                        <select class="form-select" name="enc_forn" id="enc_forn">
+                            <option value="S" selected>Sim</option>
+                            <option value="N">Não</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3 col-6 mb-3">
+                        <label class="filter-label">Utilização</label>
+                        <select class="form-select" name="utilizacao" id="utilizacao">
+                            <option value="">Todos</option>
+                            <option value="M">Malha</option>
+                            <option value="T">Tecelagem</option>
+                            <option value="L">Lasso</option>
+                            <option value="F">Forte</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção 3: Tipo de Processo -->
+            <div class="filter-section">
+                <h5 class="text-primary mb-3">
+                    <i class="bi bi-cpu"></i> Processo
+                </h5>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="filter-label">Tipo de Processo</label>
+                        <select class="form-select" name="tipo_processo" id="tipo_processo">
+                            <option value="*">Todos</option>
+                            {% for item in tipo_processo %}
+                                <option value="{{ item[0] }}" {% if item[0] == 'C' %}selected{% endif %}>
+                                    {{ item[1] }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3 d-flex align-items-end">
+                        <div class="info-badge">
+                            <i class="bi bi-info-circle"></i> 
+                            Selecione os filtros desejados e clique em Consultar
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botões de Ação -->
+            <div class="row mt-4">
+                <div class="col-12 text-center">
+                    <button type="submit" name="action" value="consultar" class="btn btn-primary btn-action">
+                        <i class="bi bi-search"></i> Consultar
+                    </button>
+                    
+                    <button type="submit" name="action" value="encomendar" class="btn btn-success btn-action">
+                        <i class="bi bi-cart-plus"></i> Encomendar
+                    </button>
+                    
+                    <button type="submit" name="action" value="precos" class="btn btn-warning btn-action text-white">
+                        <i class="bi bi-tags"></i> Preços
+                    </button>
+                    
+                    <button type="button" onclick="limparFiltros()" class="btn btn-secondary btn-action">
+                        <i class="bi bi-x-circle"></i> Limpar
+                    </button>
+                    
+                    <a href="{{ url_for('menu') }}" class="btn btn-outline-primary btn-action">
+                        <i class="bi bi-grid-3x3-gap"></i> Menu
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Informações Adicionais -->
+    <div class="row mt-4">
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="bi bi-info-circle text-primary" style="font-size: 2rem;"></i>
+                    <h5 class="mt-2">Ajuda</h5>
+                    <p class="text-muted small">
+                        Use os filtros para refinar sua pesquisa. 
+                        Deixe em branco para mostrar todos.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="bi bi-clock-history text-warning" style="font-size: 2rem;"></i>
+                    <h5 class="mt-2">Última Atualização</h5>
+                    <p class="text-muted small">
+                        Stock atualizado em tempo real
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="bi bi-download text-success" style="font-size: 2rem;"></i>
+                    <h5 class="mt-2">Exportar</h5>
+                    <p class="text-muted small">
+                        Exporte os resultados para Excel
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function limparFiltros() {
+        document.getElementById('formExistencias').reset();
+    }
+
+    // Adicionar comportamento dinâmico aos selects
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-submit quando mudar composição (opcional)
+        const composicaoSelect = document.getElementById('composicao');
+        composicaoSelect.addEventListener('change', function() {
+            // Pode adicionar lógica aqui se necessário
+        });
+    });
+
+    // Mostrar loading ao submeter
+    document.getElementById('formExistencias').addEventListener('submit', function(e) {
+        const action = e.submitter.value;
+        
+        if (action === 'encomendar') {
+            e.preventDefault();
+            if (confirm('Deseja criar uma nova encomenda com os filtros selecionados?')) {
+                // Redirecionar para página de encomenda
+                alert('Funcionalidade de encomenda em desenvolvimento');
+            }
+        } else if (action === 'precos') {
+            e.preventDefault();
+            // Redirecionar para página de preços
+            alert('Funcionalidade de consulta de preços em desenvolvimento');
+        }
+        // Para 'consultar', deixa o form submeter normalmente
+    });
+</script>
+{% endblock %}
