@@ -1,9 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
 import fdb
 from decimal import Decimal 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from functools import wraps
-from config import FIREBIRD_CONFIG, SECRET_KEY
+from config import FIREBIRD_CONFIG, WAREHOUSE_CONFIG, SECRET_KEY
 import hashlib
 
 app = Flask(__name__)
@@ -72,9 +72,9 @@ def login():
                 conn.close()
                 return render_template('login.html')
             
-            # Validar login - Vendedor é INTEGER na BD
+            # Validar login - Agora incluindo o campo NIVEL
             cursor.execute("""
-                SELECT Utilizador, Senha, Vendedor 
+                SELECT Utilizador, Senha, Vendedor, Nivel
                 FROM Utiliza_Web
                 WHERE Utilizador = ? AND Senha = ?
             """, (utilizador_busca, password))
@@ -90,22 +90,11 @@ def login():
                 session['validar'] = 1
                 session['login_time'] = datetime.now().isoformat()
                 
-                # Determinar nível de acesso baseado no vendedor (INTEGER)
+                # Obter nível de acesso diretamente da BD
                 vendedor = user_data[2]  # Já é um integer
-                nivel_acesso = 0
+                nivel_acesso = user_data[3] or 0  # Campo NIVEL da tabela, default 0 se NULL
                 
-                try:
-                    # Aplicar lógica do listaexist.php (linha 46-48)
-                    if vendedor in [1, 2]:
-                        nivel_acesso = 1
-                    elif vendedor in [20, 99]:
-                        nivel_acesso = 99
-                    
-                    print(f"DEBUG Login - Vendedor: {vendedor} (tipo: {type(vendedor)}), Nível: {nivel_acesso}")
-                    
-                except Exception as e:
-                    print(f"DEBUG Login - Erro ao calcular nível: {e}")
-                    nivel_acesso = 0
+                print(f"DEBUG Login - Vendedor: {vendedor} (tipo: {type(vendedor)}), Nível: {nivel_acesso}")
                 
                 session['nivel_acesso'] = nivel_acesso
                 
@@ -232,32 +221,111 @@ def artigos():
 @app.route('/pedidos')
 @login_required
 def pedidos():
-    """Lista de pedidos"""
+    """Lista de pedidos - Seguindo lógica do listapedidos.php"""
     pedidos_list = []
     conn = get_db_connection()
     
     if conn:
         try:
             cursor = conn.cursor()
-            cursor.execute("""
-                SELECT FIRST 50 P.Pedido, P.Cliente, C.Nome1, P.Dt_Registo, 
-                       P.Codigo, A.Descricao, P.Quantidade, P.Preco
-                FROM Pda_Pedidos P
-                LEFT JOIN Clientes C ON C.Cliente = P.Cliente
-                LEFT JOIN Artigos A ON A.Codigo = P.Codigo
-                WHERE P.Vendedor = ?
-                ORDER BY P.Dt_Registo DESC
-            """, (session.get('vendedor'),))
             
-            pedidos_list = cursor.fetchall()
+            # Mesma query do PHP com mesma lógica de acesso
+            vendedor = session.get('vendedor', 0)
+            
+            cursor.execute("""
+                SELECT FIRST 100
+                    P.Pedido, P.Quantidade, P.Preco, P.Lote, A.Descricao, 
+                    C.Nome1 as Cliente, P.Estado, P.Dt_Registo
+                FROM Pda_Pedidos P 
+                LEFT OUTER JOIN Artigos A ON A.Codigo = P.Codigo 
+                LEFT OUTER JOIN Locais_Entrega C ON C.Cliente = P.Cliente AND C.local_id = 'SEDE'
+                WHERE ( ( P.Vendedor = ? ) OR ( ? = 1 ) OR ( ? = 99 ) )
+                ORDER BY P.Dt_Registo DESC, P.Pedido DESC
+            """, (vendedor, vendedor, vendedor))
+            
+            # Converter resultados para lista de dicts para facilitar uso no template
+            columns = [desc[0] for desc in cursor.description]
+            pedidos_list = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            
             cursor.close()
             conn.close()
+            
         except Exception as e:
             flash(f'Erro ao carregar pedidos: {str(e)}', 'warning')
+            app.logger.error(f"Erro ao carregar pedidos: {str(e)}")
             if conn:
                 conn.close()
     
     return render_template('pedidos.html', pedidos=pedidos_list)
+
+@app.route('/anular_pedido', methods=['POST'])
+@login_required
+def anular_pedido():
+    """Anular um pedido - Muda estado para 'C' (Cancelado)"""
+    pedido_num = request.form.get('pedido')
+    
+    if not pedido_num:
+        return jsonify({'success': False, 'error': 'Número do pedido não fornecido'})
+    
+    try:
+        pedido_num = int(pedido_num)
+    except ValueError:
+        return jsonify({'success': False, 'error': 'Número do pedido inválido'})
+    
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({'success': False, 'error': 'Erro de conexão à base de dados'})
+    
+    try:
+        cursor = conn.cursor()
+        
+        # Verificar se o pedido existe e pertence ao vendedor (ou se é admin)
+        vendedor = session.get('vendedor', 0)
+        cursor.execute("""
+            SELECT Estado, Vendedor 
+            FROM Pda_Pedidos 
+            WHERE Pedido = ?
+        """, (pedido_num,))
+        
+        pedido_data = cursor.fetchone()
+        
+        if not pedido_data:
+            return jsonify({'success': False, 'error': 'Pedido não encontrado'})
+        
+        estado_atual, vendedor_pedido = pedido_data
+        
+        # Verificar permissões (igual à lógica do listapedidos.php)
+        if not ((vendedor_pedido == vendedor) or (vendedor == 1) or (vendedor == 99)):
+            return jsonify({'success': False, 'error': 'Sem permissões para anular este pedido'})
+        
+        # Verificar se o pedido já está cancelado ou finalizado
+        if estado_atual in ['C', 'F']:
+            estado_desc = 'Cancelado' if estado_atual == 'C' else 'Finalizado'
+            return jsonify({'success': False, 'error': f'Pedido já está {estado_desc}'})
+        
+        # Anular o pedido (mudar estado para 'C')
+        cursor.execute("""
+            UPDATE Pda_Pedidos 
+            SET Estado = 'C'
+            WHERE Pedido = ?
+        """, (pedido_num,))
+        
+        conn.commit()
+        
+        app.logger.info(f"Pedido {pedido_num} anulado por utilizador {session.get('user')}")
+        
+        cursor.close()
+        conn.close()
+        
+        return jsonify({'success': True, 'message': f'Pedido {pedido_num} anulado com sucesso'})
+        
+    except Exception as e:
+        if conn:
+            conn.rollback()
+            conn.close()
+        
+        app.logger.error(f"Erro ao anular pedido {pedido_num}: {str(e)}")
+        return jsonify({'success': False, 'error': f'Erro ao anular pedido: {str(e)}'})
 
 @app.route('/novo_pedido', methods=['GET', 'POST'])
 @login_required
@@ -582,21 +650,23 @@ def existencias_consulta():
         try:
             cursor = conn.cursor()
             
-            # Chamar stored procedure Inq_Exist_Lote_Pda
-            # Nota: Ajustar parâmetros conforme necessário
+            # Chamar stored procedure Inq_Exist_Lote_Pda - usando configurações de armazém
+            arm_ini = WAREHOUSE_CONFIG.get('arm_ini', 1)
+            arm_fim = WAREHOUSE_CONFIG.get('arm_fim', 999)
+            
             sql = """
                 SELECT RDescricao, RCodigo, RCodigoSubstituto, 
                        SUM(RExist) as TotalExist,
                        SUM(REncCli) as TotalEncCli,
                        SUM(RExist - REncCli) as Disponivel
-                FROM Inq_Exist_Lote_Pda(?, ?, 3, 4, 'TUDO', 0, '31.12.3000', 'S', '31.12.3000', 0, 'S', 1, 2, 2)
+                FROM Inq_Exist_Lote_Pda(?, ?, ?, ?, 'TUDO', 0, '31.12.3000', 'S', '31.12.3000', 0, 'S', 1, 2, 2)
                 WHERE RCodigo STARTING WITH ?
                 GROUP BY RDescricao, RCodigo, RCodigoSubstituto
                 ORDER BY RCodigo ASC
             """
             
             codigo_fim = codigo_artigo + 'z'
-            cursor.execute(sql, (codigo_artigo, codigo_fim, codigo_artigo))
+            cursor.execute(sql, (codigo_artigo, codigo_fim, arm_ini, arm_fim, codigo_artigo))
             
             resultados = cursor.fetchall()
             
@@ -760,13 +830,16 @@ def detalhes_lote(codigo):
         main_cursor = conn.cursor()
         lab_cursor = conn.cursor()
 
-        # Query exata do listaexist.php (linha 62-66)
+        # Query exata do listaexist.php (linha 62-66) - usando configurações de armazém
+        arm_ini = WAREHOUSE_CONFIG.get('arm_ini', 1)
+        arm_fim = WAREHOUSE_CONFIG.get('arm_fim', 999)
+        
         sql = """
             SELECT RCodigo, RLote, RLoteFor, RExist, (RExist - REncCli + REncFor) as RStkDisp,
                    REncCli, RFornec, RNomeFor, RDescricao, RTipoSitua, RPvp1, RPvp2, RPreco_UN, RMoeda,
                    RCond_Entrega, RChave, RTipoNivel, RNivel, RPvp3, RPvp4, RTipoSituaDesc, RCodigo_Cor,
                    RArmazem, RPreco_Compra, RSigla, RFixacao, RForma_Pag_Desc, RPrazo_NDias
-            FROM Inq_Exist_Lote_Pda_2(?, ?, 3, 4, 'ACT', 0, '31.12.3000', ?, '31.12.3000', 0, 'S', 1, 2, 2)
+            FROM Inq_Exist_Lote_Pda_2(?, ?, ?, ?, 'ACT', 0, '31.12.3000', ?, '31.12.3000', 0, 'S', 1, 2, 2)
             ORDER BY RChave ASC, RExist ASC, ROrdem
         """
         
@@ -782,7 +855,7 @@ def detalhes_lote(codigo):
         print(f"DEBUG - Executando SQL com parâmetros: codigo={codigo}, enc_forn={enc_forn}")
         print(f"DEBUG - Sessão: user={session.get('user')}, vendedor={session.get('vendedor')}, nivel_acesso={session.get('nivel_acesso')}")
         
-        main_cursor.execute(sql, (codigo, codigo, enc_forn))
+        main_cursor.execute(sql, (codigo, codigo, arm_ini, arm_fim, enc_forn))
         
             
         # DEBUG: Adicionar informação de sessão
@@ -887,13 +960,16 @@ def pedido():
                 }
                 precos_produto = {'p_qt1': produto[1] or 0, 'p_qt2': produto[2] or 0}
             
-            # Buscar quantidade disponível do lote específico
+            # Buscar quantidade disponível do lote específico - usando configurações de armazém
             if lote:
+                arm_ini = WAREHOUSE_CONFIG.get('arm_ini', 1)
+                arm_fim = WAREHOUSE_CONFIG.get('arm_fim', 999)
+                
                 cursor.execute("""
                     SELECT (RExist - REncCli + REncFor) as RStkDisp 
-                    FROM Inq_Exist_Lote_Pda_2(?, ?, 3, 4, 'ACT', 0, '31.12.3000', ?, '31.12.3000', 0, 'S', 1, 2, 2)
+                    FROM Inq_Exist_Lote_Pda_2(?, ?, ?, ?, 'ACT', 0, '31.12.3000', ?, '31.12.3000', 0, 'S', 1, 2, 2)
                     WHERE RLote = ?
-                """, (codigo, codigo, session.get('enc_forn', 'S'), lote))
+                """, (codigo, codigo, arm_ini, arm_fim, session.get('enc_forn', 'S'), lote))
                 resultado = cursor.fetchone()
                 if resultado and resultado[0] > 0:
                     quantidade_disponivel = resultado[0]
@@ -1040,15 +1116,18 @@ def validar_pedido():
                     else:
                         debug_info.append(f"3. Lote encontrado: {lote_row[0]}")
                         
-                        # 4. SIMPLIFICAR query de stock - usar query mais básica
+                        # 4. SIMPLIFICAR query de stock - usando configurações de armazém
                         try:
+                            arm_ini = WAREHOUSE_CONFIG.get('arm_ini', 1)
+                            arm_fim = WAREHOUSE_CONFIG.get('arm_fim', 999)
+                            
                             # Tentar query mais simples primeiro
                             sql_stock_simples = """
                                 SELECT RExist, REncCli, REncFor, (RExist - REncCli + REncFor) as RStkDisp
-                                FROM Inq_Exist_Lote_Pda_2(?, ?, 3, 4, 'ACT', 0, '31.12.3000', ?, '31.12.3000', 0, 'S', 1, 2, 2)
+                                FROM Inq_Exist_Lote_Pda_2(?, ?, ?, ?, 'ACT', 0, '31.12.3000', ?, '31.12.3000', 0, 'S', 1, 2, 2)
                                 WHERE RLote = ?
                             """
-                            params_stock = (str(codigo), str(codigo), str(session.get('enc_forn', 'S')), str(lote))
+                            params_stock = (str(codigo), str(codigo), arm_ini, arm_fim, str(session.get('enc_forn', 'S')), str(lote))
                             debug_info.append(f"4. SQL Stock: {sql_stock_simples} | Params: {params_stock}")
                             cursor.execute(sql_stock_simples, params_stock)
                             stock_row = cursor.fetchone()
@@ -1150,24 +1229,299 @@ def registar_pedido():
         flash('Pedido não encontrado. Por favor, tente novamente.', 'error')
         return redirect(url_for('existencias'))
     
-    # TODO: Implementar lógica de criação do pedido na base de dados
-    # Esta seria a integração com a tabela de pedidos/encomendas
+    conn = get_db_connection()
+    if not conn:
+        flash('Erro de conexão à base de dados.', 'error')
+        return redirect(url_for('existencias'))
     
     try:
-        # Log temporário dos dados do pedido
-        app.logger.info(f"Registando pedido: {pedido_validado}")
+        cursor = conn.cursor()
+        
+        # 1. Preparar dados para inserção (seguindo lógica PHP legacy)
+        utilizador = FIREBIRD_CONFIG['user']  # Usar utilizador da BD como no PHP
+        vendedor = session.get('vendedor', 0)
+        estado = 'P'  # Pendente
+        armazem_fixo = WAREHOUSE_CONFIG.get('arm_ini', 1)  # Usar armazém inicial das configurações
+        
+        # 2. Definir marca baseada em session (como no PHP)
+        marca = session.get('R_Marca', '')  # Vazio por padrão, '*' se tiver Kgs
+        
+        # 3. Inserir pedido na tabela PDA_PEDIDOS (PEDIDO=0 para auto-increment)
+        sql_insert = """
+            INSERT INTO PDA_PEDIDOS (
+                PEDIDO, UTILIZADOR, DT_REGISTO, DT_ENTREGA, CODIGO, ARMAZEM, LOTE,
+                QUANTIDADE, MARCA, CLIENTE, LOCAL_ID, PRECO, ESTADO, VENDEDOR,
+                OBSERVACOES, OBSERVACOES2, AVISOS
+            ) VALUES (
+                0, ?, CURRENT_TIMESTAMP, ?,
+                ?, ?, ?, ?, ?, ?, ?, ?,
+                'P', ?, ?, ?, ?
+            )
+        """
+        
+        params = (
+            utilizador,
+            pedido_validado.get('entrega', ''),
+            pedido_validado.get('codigo', ''),
+            armazem_fixo,
+            pedido_validado.get('lote', ''),
+            pedido_validado.get('quantidade', 0),
+            marca,
+            pedido_validado.get('cliente', ''),
+            pedido_validado.get('local_entrega', ''),
+            pedido_validado.get('preco', 0),
+            vendedor,
+            pedido_validado.get('obs', ''),
+            pedido_validado.get('obs2', ''),
+            pedido_validado.get('avisos', '0000000')
+        )
+        
+        cursor.execute(sql_insert, params)
+        conn.commit()
+        
+        app.logger.info(f"Pedido criado com sucesso para utilizador {utilizador}")
         
         # Limpar dados da sessão
         session.pop('pedido_dados', None)
         session.pop('pedido_validado', None)
         
-        flash(f'Pedido registado com sucesso! Código: {pedido_validado["codigo"]}, Lote: {pedido_validado["lote"]}, Quantidade: {pedido_validado["quantidade"]:.2f}', 'success')
+        flash(f'REGISTO INTRODUZIDO COM SUCESSO! Código: {pedido_validado["codigo"]}, Lote: {pedido_validado["lote"]}, Quantidade: {pedido_validado["quantidade"]:.2f}', 'success')
+        
+        cursor.close()
+        conn.close()
         
     except Exception as e:
         flash(f'Erro ao registar pedido: {str(e)}', 'error')
         app.logger.error(f"Erro no registo de pedido: {str(e)}")
+        if conn:
+            conn.close()
     
     return redirect(url_for('existencias'))
+
+@app.route('/configuracoes', methods=['GET', 'POST'])
+@login_required
+def configuracoes():
+    """Página de configurações do sistema - só para nivel_acesso >= 2"""
+    if session.get('nivel_acesso', 0) < 2:
+        flash('Acesso negado. Apenas administradores podem alterar configurações.', 'error')
+        return redirect(url_for('dashboard'))
+    
+    if request.method == 'POST':
+        action = request.form.get('action')
+        
+        # Obter dados do formulário
+        config_data = {
+            'host': request.form.get('host', '').strip(),
+            'port': int(request.form.get('port', 3050)),
+            'database': request.form.get('database', '').strip(),
+            'user': request.form.get('user', '').strip(),
+            'password': request.form.get('password', '').strip(),
+            'charset': request.form.get('charset', 'WIN1252').strip()
+        }
+        
+        # Obter dados dos armazéns
+        warehouse_data = {
+            'arm_ini': int(request.form.get('arm_ini', 1)),
+            'arm_fim': int(request.form.get('arm_fim', 999))
+        }
+        
+        if action == 'test':
+            # Testar ligação
+            try:
+                import fdb
+                conn = fdb.connect(
+                    host=config_data['host'],
+                    port=config_data['port'],
+                    database=config_data['database'],
+                    user=config_data['user'],
+                    password=config_data['password'],
+                    charset=config_data['charset']
+                )
+                cursor = conn.cursor()
+                cursor.execute("SELECT FIRST 1 * FROM RDB$DATABASE")
+                cursor.fetchone()
+                cursor.close()
+                conn.close()
+                
+                return jsonify({
+                    'success': True,
+                    'message': f'Ligação bem-sucedida!\n\nServidor: {config_data["host"]}:{config_data["port"]}\nBase de Dados: {config_data["database"]}\nUtilizador: {config_data["user"]}'
+                })
+            except Exception as e:
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                })
+        
+        elif action == 'save':
+            # Validar dados
+            required_fields = ['host', 'database', 'user', 'password']
+            for field in required_fields:
+                if not config_data[field]:
+                    flash(f'Campo "{field}" é obrigatório.', 'error')
+                    return render_template('configuracoes.html', config=FIREBIRD_CONFIG)
+            
+            try:
+                # Testar ligação antes de guardar
+                import fdb
+                conn = fdb.connect(
+                    host=config_data['host'],
+                    port=config_data['port'],
+                    database=config_data['database'],
+                    user=config_data['user'],
+                    password=config_data['password'],
+                    charset=config_data['charset']
+                )
+                cursor = conn.cursor()
+                cursor.execute("SELECT FIRST 1 * FROM RDB$DATABASE")
+                cursor.fetchone()
+                cursor.close()
+                conn.close()
+                
+                # Criar backup do config atual
+                import shutil
+                from datetime import datetime
+                backup_name = f"config_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.py"
+                
+                try:
+                    shutil.copy('/var/www/html/Mobile_Sales/config.py', f'/var/www/html/Mobile_Sales/{backup_name}')
+                except PermissionError:
+                    # Se não conseguir criar backup no diretório principal, usar /tmp
+                    backup_name = f"/tmp/{backup_name}"
+                    shutil.copy('/var/www/html/Mobile_Sales/config.py', backup_name)
+                    app.logger.warning(f"Backup criado em /tmp devido a permissões: {backup_name}")
+                except Exception as e:
+                    app.logger.error(f"Erro ao criar backup: {str(e)}")
+                    # Continuar mesmo sem backup
+                
+                # Escrever novo config.py
+                config_content = f"""# Configuração do Firebird para fdb
+FIREBIRD_CONFIG = {{
+    'host': '{config_data['host']}',
+    'port': {config_data['port']},
+    'database': '{config_data['database']}',
+    'user': '{config_data['user']}',
+    'password': '{config_data['password']}',
+    'charset': '{config_data['charset']}'
+}}
+
+# Configuração dos Armazéns
+WAREHOUSE_CONFIG = {{
+    'arm_ini': {warehouse_data['arm_ini']},    # Armazém inicial
+    'arm_fim': {warehouse_data['arm_fim']}   # Armazém final
+}}
+
+# Configuração Flask
+SECRET_KEY = 'chave-flask-mobile-sales'
+DEBUG = True
+"""
+                
+                with open('/var/www/html/Mobile_Sales/config.py', 'w', encoding='utf-8') as f:
+                    f.write(config_content)
+                
+                flash(f'Configurações guardadas com sucesso! Backup criado: {backup_name}', 'success')
+                app.logger.info(f"Configurações alteradas por {session.get('user')} - Backup: {backup_name}")
+                
+                # Reiniciar Apache para aplicar alterações
+                import subprocess
+                try:
+                    # Como root, não precisamos de sudo
+                    subprocess.run(['systemctl', 'restart', 'apache2.service'], check=True, capture_output=True)
+                    flash('Sistema reiniciado para aplicar alterações.', 'success')
+                except subprocess.CalledProcessError as e:
+                    flash(f'Aviso: Erro ao reiniciar sistema automaticamente: {e}', 'warning')
+                except FileNotFoundError:
+                    # Se systemctl não for encontrado, tentar service
+                    try:
+                        subprocess.run(['service', 'apache2', 'restart'], check=True, capture_output=True)
+                        flash('Sistema reiniciado para aplicar alterações.', 'success')
+                    except Exception as e2:
+                        flash(f'Aviso: Não foi possível reiniciar automaticamente. Reinicie manualmente: {e2}', 'warning')
+                
+            except Exception as e:
+                flash(f'Erro ao testar/guardar configurações: {str(e)}', 'error')
+                app.logger.error(f"Erro nas configurações: {str(e)}")
+    
+    return render_template('configuracoes.html', config=FIREBIRD_CONFIG, warehouse_config=WAREHOUSE_CONFIG)
+
+@app.route('/reservas/<codigo>/<lote>')
+@login_required
+def lista_reservas(codigo, lote):
+    """Lista reservas/encomendas de clientes para um produto específico"""
+    
+    reservas = []
+    info_artigo = None
+    fornecedor = request.args.get('fornecedor', '')
+    
+    conn = get_db_connection()
+    if conn:
+        try:
+            cursor = conn.cursor()
+            
+            # Buscar informação do artigo
+            cursor.execute("""
+                SELECT Codigo, Descricao
+                FROM Artigos 
+                WHERE Codigo = ?
+            """, (codigo,))
+            info_artigo = cursor.fetchone()
+            
+            # Usar configurações dos armazéns do config.py
+            arm_ini = WAREHOUSE_CONFIG.get('arm_ini', 1)
+            arm_fim = WAREHOUSE_CONFIG.get('arm_fim', 999)
+            
+            # Query exatamente igual ao PHP original
+            sql_query = """
+                SELECT I.RData, I.RQuant1, I.RQuant2, I.RPreco_Un, I.RNomeTerc, 
+                       I.RDataEnt, I.RCodigo, I.RLote, I.RSerie, I.RNumero, 
+                       I.RTerceiro, L.Vendedor, I.RLinha, I.RArmazem, A.Descricao
+                FROM Inq_Exist_Lote_Enc2(?, ?, ?, ?, ?, '31.12.3000', 'E', 'S', 1, 2, 2) I
+                LEFT OUTER JOIN Locais_Entrega L ON L.Cliente = I.RTerceiro AND L.Local_ID = 'SEDE'
+                LEFT OUTER JOIN Artigos A ON A.Codigo = I.RCodigo
+            """
+            
+            vendedor = session.get('cd_vend', 0)
+            
+            # Converter fornecedor para int (como no PHP: $E_Fornecedor)
+            try:
+                fornecedor_int = int(fornecedor) if fornecedor and fornecedor.strip() else 0
+            except (ValueError, AttributeError):
+                fornecedor_int = 0
+                
+            app.logger.debug(f"Reservas Query - Codigo: {codigo}, Lote: {lote}, ArmIni: {arm_ini}, ArmFim: {arm_fim}, Fornecedor: {fornecedor_int}, Vendedor: {vendedor}")
+            
+            # Executar query com parâmetros como no PHP
+            cursor.execute(sql_query, (codigo, lote, arm_ini, arm_fim, fornecedor_int))
+            
+            # Buscar todos os resultados
+            todas_reservas = cursor.fetchall()
+            reservas = []
+            
+            # Aplicar filtros como no PHP original
+            for reserva in todas_reservas:
+                vendedor_reserva = reserva[11] if reserva[11] is not None else 0
+                quant_pedida = float(reserva[1]) if reserva[1] is not None else 0.0
+                quant_entregue = float(reserva[2]) if reserva[2] is not None else 0.0
+                quant_falta = quant_pedida - quant_entregue
+                
+                # Filtro igual ao PHP: vendedor autorizado E quantidade em falta > 0.1
+                if ((vendedor_reserva == vendedor) or (vendedor in [1, 2, 99])) and (quant_falta > 0.1):
+                    reservas.append(reserva)
+            
+            cursor.close()
+            
+        except Exception as e:
+            flash(f'Erro ao consultar reservas: {str(e)}', 'error')
+            app.logger.error(f"Erro na consulta de reservas: {str(e)}")
+        finally:
+            conn.close()
+    
+    return render_template('reservas.html', 
+                         reservas=reservas,
+                         info_artigo=info_artigo,
+                         codigo=codigo, 
+                         lote=lote,
+                         fornecedor=fornecedor)
             
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

@@ -238,6 +238,17 @@
             </h4>
         </div>
 
+        {% if session.nivel_acesso >= 2 %}
+        <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="card menu-card" onclick="window.location.href='{{ url_for('configuracoes') }}'">
+                <div class="card-body text-center">
+                    <i class="bi bi-sliders text-warning"></i>
+                    <h5 class="mt-2">Configurações</h5>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <div class="col-lg-3 col-md-4 col-6 mb-4">
             <div class="card menu-card" onclick="alert('Funcionalidade em desenvolvimento')">
                 <div class="card-body text-center">
@@ -256,14 +267,6 @@
             </div>
         </div>
 
-        <div class="col-lg-3 col-md-4 col-6 mb-4">
-            <div class="card menu-card" onclick="alert('Funcionalidade em desenvolvimento')">
-                <div class="card-body text-center">
-                    <i class="bi bi-sliders text-warning"></i>
-                    <h5 class="mt-2">Configurações</h5>
-                </div>
-            </div>
-        </div>
 
         <div class="col-lg-3 col-md-4 col-6 mb-4">
             <div class="card menu-card" onclick="window.location.href='{{ url_for('logout') }}'">

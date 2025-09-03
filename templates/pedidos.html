@@ -1,0 +1,543 @@
+{% extends "base.html" %}
+
+{% block title %}Lista de Pedidos{% endblock %}
+
+{% block extra_css %}
+<style>
+    .pedidos-container {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-top: 20px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+    }
+
+    .pedidos-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 25px;
+        text-align: center;
+    }
+
+    .pedidos-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .pedido-card {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #dee2e6;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: all 0.3s;
+        position: relative;
+    }
+
+    .pedido-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    }
+
+    .pedido-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .pedido-numero {
+        font-size: 18px;
+        font-weight: bold;
+        color: #007bff;
+    }
+
+    .pedido-data {
+        font-size: 14px;
+        color: #6c757d;
+    }
+
+    .pedido-body {
+        margin-bottom: 15px;
+    }
+
+    .pedido-field {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 12px;
+        font-size: 14px;
+        gap: 10px;
+    }
+
+    .pedido-label {
+        font-weight: 600;
+        color: #495057;
+        min-width: 80px;
+    }
+
+    .pedido-value {
+        color: #333;
+        text-align: right;
+        word-wrap: break-word;
+        line-height: 1.3;
+    }
+
+    .pedido-cliente {
+        font-weight: bold;
+        color: #28a745;
+        word-wrap: break-word;
+        line-height: 1.3;
+    }
+
+    .pedido-descricao {
+        font-style: italic;
+        color: #6c757d;
+        word-wrap: break-word;
+        line-height: 1.3;
+        flex: 1;
+    }
+
+    .pedido-preco {
+        font-size: 16px;
+        font-weight: bold;
+        color: #dc3545;
+    }
+
+    .pedido-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: space-between;
+        margin-top: 15px;
+        padding-top: 10px;
+        border-top: 1px solid #eee;
+    }
+
+    .btn-action {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+    }
+
+    .btn-alterar {
+        background: #007bff;
+        color: white;
+        flex: 1;
+    }
+
+    .btn-alterar:hover {
+        background: #0056b3;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-anular {
+        background: #dc3545;
+        color: white;
+        flex: 1;
+    }
+
+    .btn-anular:hover {
+        background: #c82333;
+    }
+
+    .btn-anular:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+    }
+
+    .estado-badge {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .estado-P { background: #fff3cd; color: #856404; }
+    .estado-A { background: #d4edda; color: #155724; }
+    .estado-C { background: #f8d7da; color: #721c24; }
+    .estado-F { background: #d1ecf1; color: #0c5460; }
+
+    .no-pedidos {
+        text-align: center;
+        padding: 40px;
+        color: #6c757d;
+    }
+
+    .no-pedidos i {
+        font-size: 48px;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    .text-right {
+        text-align: right;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .pedidos-table tbody td a {
+        color: #007bff;
+        text-decoration: none;
+    }
+
+    .pedidos-table tbody td a:hover {
+        color: #0056b3;
+        text-decoration: underline;
+    }
+
+    .btn-voltar {
+        background: #6c757d;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s;
+        display: inline-block;
+        margin-bottom: 20px;
+    }
+
+    .btn-voltar:hover {
+        background: #545b62;
+        transform: translateY(-1px);
+        color: white;
+        text-decoration: none;
+    }
+
+    .filtros-container {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #dee2e6;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .filtros-header {
+        margin-bottom: 15px;
+    }
+
+    .filtros-header h6 {
+        color: #495057;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .filtros-form {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        align-items: center;
+    }
+
+    .filtro-input {
+        padding: 10px;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: border-color 0.3s;
+    }
+
+    .filtro-input:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+    }
+
+    .btn-limpar {
+        background: #dc3545;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        justify-self: start;
+    }
+
+    .btn-limpar:hover {
+        background: #c82333;
+        transform: translateY(-1px);
+    }
+
+    .pedido-card.hidden {
+        display: none;
+    }
+
+    @media screen and (max-width: 768px) {
+        .pedidos-grid {
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        
+        .pedido-card {
+            padding: 15px;
+        }
+        
+        .pedidos-container {
+            margin: 10px;
+            padding: 15px;
+        }
+        
+        .pedido-field {
+            font-size: 13px;
+        }
+        
+        .pedido-descricao {
+            max-width: none;
+        }
+
+        .filtros-form {
+            grid-template-columns: 1fr;
+        }
+
+        .btn-limpar {
+            justify-self: stretch;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="pedidos-container">
+        <div class="pedidos-header">
+            <h4><i class="bi bi-list-check"></i> Lista de Pedidos</h4>
+            <small>Consulta de pedidos registados no sistema</small>
+        </div>
+
+        <a href="{{ url_for('menu') }}" class="btn-voltar">
+            <i class="bi bi-arrow-left"></i> Voltar ao Menu
+        </a>
+
+        <!-- Filtros de Pesquisa -->
+        <div class="filtros-container">
+            <div class="filtros-header">
+                <h6><i class="bi bi-funnel"></i> Filtros de Pesquisa</h6>
+            </div>
+            <div class="filtros-form">
+                <input type="text" id="filtro-cliente" placeholder="Procurar por cliente..." class="filtro-input">
+                <input type="text" id="filtro-produto" placeholder="Procurar por produto..." class="filtro-input">
+                <input type="text" id="filtro-lote" placeholder="Procurar por lote..." class="filtro-input">
+                <button onclick="limparFiltros()" class="btn-limpar">
+                    <i class="bi bi-x-circle"></i> Limpar
+                </button>
+            </div>
+        </div>
+
+        {% if pedidos and pedidos|length > 0 %}
+        <div class="pedidos-grid">
+            {% for pedido in pedidos %}
+            <div class="pedido-card">
+                <!-- Header do Card -->
+                <div class="pedido-header">
+                    <div class="pedido-numero">Nº {{ pedido.PEDIDO }}</div>
+                    <div class="pedido-data">{{ pedido.DT_REGISTO.strftime('%d/%m/%Y') if pedido.DT_REGISTO else '-' }}</div>
+                </div>
+                
+                <!-- Corpo do Card -->
+                <div class="pedido-body">
+                    <div class="pedido-field">
+                        <span class="pedido-label">Cliente:</span>
+                        <span class="pedido-value pedido-cliente">{{ pedido.CLIENTE or '-' }}</span>
+                    </div>
+                    
+                    <div class="pedido-field">
+                        <span class="pedido-label">Produto:</span>
+                        <span class="pedido-value pedido-descricao">
+                            {{ pedido.DESCRICAO or '-' }}
+                        </span>
+                    </div>
+                    
+                    <div class="pedido-field">
+                        <span class="pedido-label">Lote:</span>
+                        <span class="pedido-value">{{ pedido.LOTE or '-' }}</span>
+                    </div>
+                    
+                    <div class="pedido-field">
+                        <span class="pedido-label">Kgs:</span>
+                        <span class="pedido-value">{{ '{:,.2f}'.format(pedido.QUANTIDADE or 0).replace(',', 'X').replace('.', ',').replace('X', '.') }}</span>
+                    </div>
+                    
+                    <div class="pedido-field">
+                        <span class="pedido-label">Preço:</span>
+                        <span class="pedido-value pedido-preco">{{ '{:,.2f}'.format(pedido.PRECO or 0).replace(',', 'X').replace('.', ',').replace('X', '.') }}€</span>
+                    </div>
+                    
+                    <div class="pedido-field">
+                        <span class="pedido-label">Estado:</span>
+                        <span class="estado-badge estado-{{ pedido.ESTADO or 'P' }}">
+                            {% if pedido.ESTADO == 'P' %}Pendente
+                            {% elif pedido.ESTADO == 'A' %}Aprovado
+                            {% elif pedido.ESTADO == 'C' %}Cancelado
+                            {% elif pedido.ESTADO == 'F' %}Finalizado
+                            {% else %}{{ pedido.ESTADO or 'P' }}
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Ações do Card -->
+                <div class="pedido-actions">
+                    <a href="#" onclick="alert('Alteração de pedidos em desenvolvimento')" class="btn-action btn-alterar">
+                        <i class="bi bi-pencil"></i> Alterar
+                    </a>
+                    
+                    {% if pedido.ESTADO not in ['C', 'F'] %}
+                    <button type="button" class="btn-action btn-anular" onclick="anularPedido({{ pedido.PEDIDO }})">
+                        <i class="bi bi-x-circle"></i> Anular
+                    </button>
+                    {% else %}
+                    <button type="button" class="btn-action btn-anular" disabled>
+                        <i class="bi bi-x-circle"></i> Anulado
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-pedidos">
+            <i class="bi bi-inbox"></i>
+            <h5>Nenhum pedido encontrado</h5>
+            <p>Não existem pedidos registados no sistema ou não tem permissões para visualizá-los.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    function anularPedido(numeroPedido) {
+        if (!confirm(`⚠️ Confirma a anulação do pedido ${numeroPedido}?\n\nEsta ação não pode ser desfeita.`)) {
+            return;
+        }
+        
+        const form = new FormData();
+        form.append('pedido', numeroPedido);
+        
+        // Desabilitar botão durante o processamento
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> A anular...';
+        btn.disabled = true;
+        
+        fetch('{{ url_for("anular_pedido") }}', {
+            method: 'POST',
+            body: form
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('✅ Pedido anulado com sucesso!');
+                // Recarregar a página para atualizar a lista
+                window.location.reload();
+            } else {
+                alert('❌ Erro ao anular pedido:\n\n' + data.error);
+                // Restaurar botão em caso de erro
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        })
+        .catch(error => {
+            alert('❌ Erro ao anular pedido:\n\n' + error);
+            // Restaurar botão em caso de erro
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+    }
+
+    // Funcionalidade de filtros
+    function filtrarPedidos() {
+        const filtroCliente = document.getElementById('filtro-cliente').value.toLowerCase();
+        const filtroProduto = document.getElementById('filtro-produto').value.toLowerCase();
+        const filtroLote = document.getElementById('filtro-lote').value.toLowerCase();
+        
+        const cards = document.querySelectorAll('.pedido-card');
+        let visibleCount = 0;
+        
+        cards.forEach(card => {
+            const cliente = card.querySelector('.pedido-cliente')?.textContent.toLowerCase() || '';
+            const produto = card.querySelector('.pedido-descricao')?.textContent.toLowerCase() || '';
+            const lote = card.querySelectorAll('.pedido-value')[2]?.textContent.toLowerCase() || '';
+            
+            const matchCliente = !filtroCliente || cliente.includes(filtroCliente);
+            const matchProduto = !filtroProduto || produto.includes(filtroProduto);
+            const matchLote = !filtroLote || lote.includes(filtroLote);
+            
+            if (matchCliente && matchProduto && matchLote) {
+                card.classList.remove('hidden');
+                visibleCount++;
+            } else {
+                card.classList.add('hidden');
+            }
+        });
+        
+        // Mostrar mensagem se não há resultados
+        const noResults = document.getElementById('no-results');
+        const grid = document.querySelector('.pedidos-grid');
+        
+        if (visibleCount === 0 && (filtroCliente || filtroProduto || filtroLote)) {
+            if (!noResults) {
+                const div = document.createElement('div');
+                div.id = 'no-results';
+                div.className = 'no-pedidos';
+                div.innerHTML = '<i class="bi bi-search"></i><h5>Nenhum pedido encontrado</h5><p>Não há pedidos que correspondam aos filtros aplicados.</p>';
+                grid.parentNode.appendChild(div);
+            }
+            grid.style.display = 'none';
+        } else {
+            if (noResults) {
+                noResults.remove();
+            }
+            grid.style.display = 'grid';
+        }
+    }
+    
+    function limparFiltros() {
+        document.getElementById('filtro-cliente').value = '';
+        document.getElementById('filtro-produto').value = '';
+        document.getElementById('filtro-lote').value = '';
+        
+        document.querySelectorAll('.pedido-card').forEach(card => {
+            card.classList.remove('hidden');
+        });
+        
+        const noResults = document.getElementById('no-results');
+        if (noResults) {
+            noResults.remove();
+        }
+        
+        const grid = document.querySelector('.pedidos-grid');
+        if (grid) {
+            grid.style.display = 'grid';
+        }
+    }
+    
+    // Event listeners para os filtros
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('filtro-cliente').addEventListener('input', filtrarPedidos);
+        document.getElementById('filtro-produto').addEventListener('input', filtrarPedidos);
+        document.getElementById('filtro-lote').addEventListener('input', filtrarPedidos);
+    });
+</script>
+{% endblock %}

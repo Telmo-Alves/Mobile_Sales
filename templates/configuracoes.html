@@ -1,0 +1,359 @@
+{% extends "base.html" %}
+
+{% block title %}Configurações do Sistema{% endblock %}
+
+{% block extra_css %}
+<style>
+    .config-container {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-top: 20px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+    }
+
+    .config-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 25px;
+        text-align: center;
+    }
+
+    .config-section {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-left: 4px solid #007bff;
+    }
+
+    .config-section h5 {
+        color: #007bff;
+        margin-bottom: 20px;
+        font-weight: 600;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s;
+        box-sizing: border-box;
+    }
+
+    .form-control:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        outline: none;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .btn-group {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 30px;
+    }
+
+    .btn {
+        padding: 12px 30px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        min-width: 140px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: #545b62;
+        transform: translateY(-1px);
+    }
+
+    .btn-test {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+
+    .btn-test:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+    }
+
+    .alert {
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    .alert-success {
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+    }
+
+    .alert-danger {
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+    }
+
+    .alert-warning {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        color: #856404;
+    }
+
+    .config-info {
+        background: #e3f2fd;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+        color: #1976d2;
+        font-size: 14px;
+    }
+
+    @media screen and (max-width: 768px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+        
+        .btn-group {
+            flex-direction: column;
+        }
+        
+        .config-container {
+            margin: 10px;
+            padding: 20px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="config-container">
+        <div class="config-header">
+            <h4><i class="bi bi-gear"></i> Configurações do Sistema</h4>
+            <small>Configurar ligação à base de dados Firebird</small>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else 'success' if category == 'success' else 'warning' }}">
+                        <i class="bi bi-{{ 'exclamation-triangle' if category == 'error' else 'check-circle' if category == 'success' else 'info-circle' }}"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('configuracoes') }}">
+            <div class="config-section">
+                <h5><i class="bi bi-server"></i> Configuração do Firebird</h5>
+                
+                <div class="config-info">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>Atenção:</strong> Alterar estas configurações pode afetar o funcionamento do sistema. 
+                    Teste a ligação antes de guardar.
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="host">
+                            <i class="bi bi-hdd-network"></i> Servidor (Host)
+                        </label>
+                        <input type="text" class="form-control" id="host" name="host" 
+                               value="{{ config.host }}" required 
+                               placeholder="192.168.0.201">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="port">
+                            <i class="bi bi-ethernet"></i> Porta
+                        </label>
+                        <input type="number" class="form-control" id="port" name="port" 
+                               value="{{ config.port }}" required min="1" max="65535"
+                               placeholder="3050">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="database">
+                        <i class="bi bi-database"></i> Base de Dados
+                    </label>
+                    <input type="text" class="form-control" id="database" name="database" 
+                           value="{{ config.database }}" required
+                           placeholder="gescom_risatel">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="user">
+                            <i class="bi bi-person"></i> Utilizador
+                        </label>
+                        <input type="text" class="form-control" id="user" name="user" 
+                               value="{{ config.user }}" required
+                               placeholder="SYSDBA">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="password">
+                            <i class="bi bi-key"></i> Palavra-passe
+                        </label>
+                        <input type="password" class="form-control" id="password" name="password" 
+                               value="{{ config.password }}" required
+                               placeholder="••••••••">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="charset">
+                        <i class="bi bi-fonts"></i> Charset
+                    </label>
+                    <select class="form-control" id="charset" name="charset" required>
+                        <option value="WIN1252" {{ 'selected' if config.charset == 'WIN1252' else '' }}>WIN1252 (Windows-1252)</option>
+                        <option value="UTF8" {{ 'selected' if config.charset == 'UTF8' else '' }}>UTF8</option>
+                        <option value="ISO8859_1" {{ 'selected' if config.charset == 'ISO8859_1' else '' }}>ISO8859_1</option>
+                        <option value="NONE" {{ 'selected' if config.charset == 'NONE' else '' }}>NONE</option>
+                    </select>
+                </div>
+
+                <!-- Configurações dos Armazéns -->
+                <div class="config-section">
+                    <div class="section-header">
+                        <h5><i class="bi bi-building"></i> Configuração dos Armazéns</h5>
+                        <small>Define os limites dos armazéns para consultas</small>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="arm_ini">
+                                <i class="bi bi-box"></i> Armazém Inicial
+                            </label>
+                            <input type="number" class="form-control" id="arm_ini" name="arm_ini" 
+                                   value="{{ warehouse_config.arm_ini if warehouse_config else 1 }}" required
+                                   min="1" max="999" placeholder="1">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="arm_fim">
+                                <i class="bi bi-boxes"></i> Armazém Final
+                            </label>
+                            <input type="number" class="form-control" id="arm_fim" name="arm_fim" 
+                                   value="{{ warehouse_config.arm_fim if warehouse_config else 999 }}" required
+                                   min="1" max="999" placeholder="999">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button type="button" class="btn btn-test" onclick="testarLigacao()">
+                    <i class="bi bi-lightning"></i> Testar Ligação
+                </button>
+                
+                <button type="submit" class="btn btn-primary" name="action" value="save">
+                    <i class="bi bi-check-circle"></i> Guardar
+                </button>
+                
+                <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function testarLigacao() {
+        const formData = new FormData();
+        formData.append('host', document.getElementById('host').value);
+        formData.append('port', document.getElementById('port').value);
+        formData.append('database', document.getElementById('database').value);
+        formData.append('user', document.getElementById('user').value);
+        formData.append('password', document.getElementById('password').value);
+        formData.append('charset', document.getElementById('charset').value);
+        formData.append('action', 'test');
+
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> A testar...';
+        btn.disabled = true;
+
+        fetch('{{ url_for("configuracoes") }}', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('✅ Ligação testada com sucesso!\n\n' + data.message);
+            } else {
+                alert('❌ Erro na ligação:\n\n' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('❌ Erro ao testar ligação:\n\n' + error);
+        })
+        .finally(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+    }
+
+    // Validação do formulário
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const host = document.getElementById('host').value.trim();
+        const database = document.getElementById('database').value.trim();
+        const user = document.getElementById('user').value.trim();
+        const password = document.getElementById('password').value.trim();
+
+        if (!host || !database || !user || !password) {
+            e.preventDefault();
+            alert('❌ Todos os campos são obrigatórios!');
+            return;
+        }
+
+        if (!confirm('⚠️ Confirma a alteração das configurações?\n\nO sistema será reiniciado para aplicar as alterações.')) {
+            e.preventDefault();
+        }
+    });
+</script>
+{% endblock %}

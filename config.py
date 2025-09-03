@@ -8,6 +8,12 @@ FIREBIRD_CONFIG = {
     'charset': 'WIN1252'
 }
 
+# Configuração dos Armazéns
+WAREHOUSE_CONFIG = {
+    'arm_ini': 3,    # Armazém inicial
+    'arm_fim': 4   # Armazém final
+}
+
 # Configuração Flask
 SECRET_KEY = 'chave-flask-mobile-sales'
 DEBUG = True
