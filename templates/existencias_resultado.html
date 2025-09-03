@@ -198,15 +198,353 @@
         color: #6c757d;
     }
     
-    /* Responsividade (Restaurado) */
-    @media (max-width: 768px) {
-        .item-row { flex-direction: row; align-items: center; gap: 10px; }
-        .item-descricao { flex: 1; min-width: 0; max-width: 45%; }
-        .item-link { font-size: 13px; }
-        .item-stats-container { gap: 4px; flex: 1; justify-content: flex-end; }
-        .stats-column { min-width: 68px; padding: 4px 5px; }
-        .stats-label { font-size: 9px; }
-        .stats-value { font-size: 13px; }
+    /* Responsividade para Mobile */
+    @media screen and (max-width: 768px) {
+        .item-row { 
+            flex-direction: column !important; 
+            align-items: stretch !important; 
+            gap: 10px !important;
+            padding: 15px 10px !important;
+        }
+        
+        .item-descricao { 
+            flex: none !important; 
+            width: 100% !important;
+            max-width: 100% !important; 
+            margin-bottom: 10px !important;
+        }
+        
+        .item-link { 
+            font-size: 14px !important;
+            white-space: normal !important;
+            overflow: visible !important;
+            text-overflow: unset !important;
+            word-break: break-word !important;
+            display: block !important;
+        }
+        
+        .item-stats-container { 
+            gap: 5px !important; 
+            width: 100% !important;
+            display: flex !important;
+            justify-content: space-between !important;
+            flex-shrink: 0 !important;
+        }
+        
+        .stats-column { 
+            min-width: 0 !important;
+            flex: 1 !important;
+            padding: 8px 3px !important; 
+            text-align: center !important;
+        }
+        
+        .stats-label { 
+            font-size: 9px !important; 
+            margin-bottom: 2px !important;
+        }
+        
+        .stats-value { 
+            font-size: 13px !important; 
+        }
+        
+        .substituto-alert {
+            display: block !important;
+            margin-left: 0 !important;
+            margin-top: 5px !important;
+            font-size: 11px !important;
+        }
+        
+        /* Força a quebra da tabela summary também */
+        .summary-table .col-4 {
+            padding: 5px !important;
+        }
+        
+        .summary-value {
+            font-size: 16px !important;
+        }
+    }
+    
+    /* Para telas muito pequenas */
+    @media screen and (max-width: 480px) {
+        .stats-column {
+            padding: 6px 2px !important;
+        }
+        
+        .stats-label {
+            font-size: 8px !important;
+            letter-spacing: 0 !important;
+        }
+        
+        .stats-value {
+            font-size: 12px !important;
+        }
+        
+        .item-link {
+            font-size: 13px !important;
+            line-height: 1.4 !important;
+        }
+    }
+
+    /* Estilos para os cards de lote mobile */
+    .lote-card {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .lote-card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+
+    .lote-header-main {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    }
+
+    .lote-situacao {
+        background: rgba(255,255,255,0.2);
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 10px;
+        font-weight: normal;
+    }
+
+    .lote-card-body {
+        padding: 10px;
+    }
+
+    .lote-field {
+        text-align: center;
+        margin-bottom: 5px;
+    }
+
+    .lote-label {
+        font-size: 9px;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: #6c757d;
+        margin-bottom: 2px;
+        letter-spacing: 0.2px;
+        line-height: 1;
+    }
+
+    .lote-value {
+        font-size: 13px;
+        font-weight: bold;
+        color: #333;
+        font-variant-numeric: tabular-nums;
+        line-height: 1.2;
+    }
+
+    .lote-field-horizontal {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        flex-wrap: wrap;
+        font-size: 11px;
+    }
+
+    .lote-field-horizontal .lote-label {
+        font-size: 10px;
+        margin-bottom: 0;
+        flex-shrink: 0;
+    }
+
+    .lote-value-inline {
+        font-weight: bold;
+        color: #333;
+        font-size: 11px;
+    }
+
+    .lote-lab-results-inline {
+        font-size: 10px;
+        color: #495057;
+        background: #f8f9fa;
+        padding: 4px 6px;
+        border-radius: 3px;
+        border-left: 2px solid #17a2b8;
+        flex: 1;
+    }
+
+    /* Better spacing for mobile cards */
+    .lote-card .no-gutters > .col-4,
+    .lote-card .no-gutters > .col-6 {
+        padding-left: 2px !important;
+        padding-right: 2px !important;
+    }
+
+    .lote-card .no-gutters > .col-4:first-child,
+    .lote-card .no-gutters > .col-6:first-child {
+        padding-left: 0 !important;
+    }
+
+    .lote-card .no-gutters > .col-4:last-child,
+    .lote-card .no-gutters > .col-6:last-child {
+        padding-right: 0 !important;
+    }
+
+    .lote-summary-card {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    .lote-summary-header {
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        opacity: 0.9;
+        margin-bottom: 5px;
+    }
+
+    .lote-summary-value {
+        font-size: 18px;
+        font-weight: bold;
+        font-variant-numeric: tabular-nums;
+    }
+
+    /* Desktop Action Buttons */
+    .btn-group-desktop {
+        display: flex;
+        gap: 3px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn-action-desktop {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 4px 6px;
+        font-size: 12px;
+        color: #495057;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 28px;
+        height: 28px;
+    }
+
+    .btn-action-desktop:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .btn-action-desktop i {
+        font-size: 12px;
+    }
+
+    /* Desktop button specific colors */
+    .btn-pedido-desktop:hover { background: #e3f2fd; border-color: #2196f3; color: #1976d2; }
+    .btn-reserva-desktop:hover { background: #fff3e0; border-color: #ff9800; color: #f57c00; }
+    .btn-requisicao-desktop:hover { background: #f3e5f5; border-color: #9c27b0; color: #7b1fa2; }
+    .btn-extrato-desktop:hover { background: #e8f5e8; border-color: #4caf50; color: #388e3c; }
+    .btn-obs-lab-desktop:hover { background: #e0f2f1; border-color: #009688; color: #00695c; }
+
+    /* Action Buttons Styling */
+    .lote-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        justify-content: space-between;
+        border-top: 1px solid #e9ecef;
+        padding-top: 10px;
+        margin-top: 5px;
+    }
+
+    .btn-action {
+        flex: 1;
+        min-width: 0;
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        padding: 6px 2px;
+        font-size: 9px;
+        font-weight: 600;
+        color: #495057;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+    }
+
+    .btn-action i {
+        font-size: 12px;
+        line-height: 1;
+    }
+
+    .btn-action span {
+        font-size: 8px;
+        line-height: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        width: 100%;
+    }
+
+    .btn-action:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .btn-action:active {
+        transform: translateY(0);
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    /* Specific button colors */
+    .btn-pedido:hover { background: #e3f2fd; border-color: #2196f3; color: #1976d2; }
+    .btn-reserva:hover { background: #fff3e0; border-color: #ff9800; color: #f57c00; }
+    .btn-requisicao:hover { background: #f3e5f5; border-color: #9c27b0; color: #7b1fa2; }
+    .btn-extrato:hover { background: #e8f5e8; border-color: #4caf50; color: #388e3c; }
+    .btn-obs-lab:hover { background: #e0f2f1; border-color: #009688; color: #00695c; }
+
+    /* Responsive adjustments for very small screens */
+    @media screen and (max-width: 480px) {
+        .lote-actions {
+            gap: 3px;
+        }
+        
+        .btn-action {
+            padding: 5px 1px;
+            border-radius: 4px;
+        }
+        
+        .btn-action i {
+            font-size: 10px;
+        }
+        
+        .btn-action span {
+            font-size: 7px;
+        }
+    }
+
+    @media screen and (max-width: 360px) {
+        .lote-actions {
+            gap: 2px;
+        }
+        
+        .btn-action {
+            padding: 4px 1px;
+        }
+        
+        .btn-action span {
+            font-size: 6px;
+        }
     }
 </style>
 {% endblock %}
@@ -410,5 +748,42 @@
             });
         });
     });
+
+    // Action button functions
+    function abrirPedido(codigo, lote) {
+        // Construir URL para o formulário de pedido
+        const params = new URLSearchParams({
+            codigo: codigo,
+            lote: lote,
+            // Adicionar outros parâmetros se necessário
+        });
+        
+        // Redirecionar para a página de pedido
+        window.location.href = `/pedido?${params.toString()}`;
+    }
+
+    function abrirReservas(codigo, lote) {
+        // TODO: Implementar consulta de reservas
+        alert(`Ver Reservas para:\nCódigo: ${codigo}\nLote: ${lote}`);
+        console.log('Reservas:', { codigo, lote });
+    }
+
+    function abrirRequisicoes(codigo, lote) {
+        // TODO: Implementar consulta de requisições
+        alert(`Ver Requisições para:\nCódigo: ${codigo}\nLote: ${lote}`);
+        console.log('Requisições:', { codigo, lote });
+    }
+
+    function abrirExtrato(codigo, lote) {
+        // TODO: Implementar consulta de extrato
+        alert(`Ver Extrato para:\nCódigo: ${codigo}\nLote: ${lote}`);
+        console.log('Extrato:', { codigo, lote });
+    }
+
+    function abrirObsLab(codigo, lote) {
+        // TODO: Implementar observações de laboratório
+        alert(`Observações Lab para:\nCódigo: ${codigo}\nLote: ${lote}`);
+        console.log('Obs Lab:', { codigo, lote });
+    }
 </script>
 {% endblock %}

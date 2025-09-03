@@ -117,7 +117,7 @@
                         <select class="form-select" name="tipo_artigo" id="tipo_artigo">
                             <option value="">-- Selecione --</option>
                             {% for item in tipo_artigo %}
-                                <option value="{{ item[0] }}" {% if item[2] == 1 %}selected{% endif %}>
+                                <option value="{{ item[0] }}" {% if filtros_guardados.tipo_artigo == item[0] %}selected{% endif %}>
                                     {{ item[1] }}
                                 </option>
                             {% endfor %}
@@ -129,7 +129,7 @@
                         <select class="form-select" name="composicao" id="composicao">
                             <option value="">-- Todas --</option>
                             {% for item in composicoes %}
-                                <option value="{{ item[0] }}" {% if item[2] == 1 %}selected{% endif %}>
+                                <option value="{{ item[0] }}" {% if filtros_guardados.composicao == item[0] %}selected{% endif %}>
                                     {{ item[1] }}
                                 </option>
                             {% endfor %}
@@ -150,7 +150,7 @@
                         <select class="form-select" name="tipo_ne" id="tipo_ne">
                             <option value="">-- Todos --</option>
                             {% for item in tipo_ne %}
-                                <option value="{{ item[0] }}" {% if item[2] == 12 %}selected{% endif %}>
+                                <option value="{{ item[0] }}" {% if filtros_guardados.tipo_ne == item[0] %}selected{% endif %}>
                                     {{ item[1] }}
                                 </option>
                             {% endfor %}
@@ -162,7 +162,7 @@
                         <select class="form-select" name="n_cabos" id="n_cabos">
                             <option value="">-- Todos --</option>
                             {% for item in n_cabos %}
-                                <option value="{{ item[0] }}" {% if item[2] == 1 %}selected{% endif %}>
+                                <option value="{{ item[0] }}" {% if filtros_guardados.n_cabos == item[0] %}selected{% endif %}>
                                     {{ item[1] }}
                                 </option>
                             {% endfor %}
@@ -172,19 +172,19 @@
                     <div class="col-md-3 col-6 mb-3">
                         <label class="filter-label">Enc. Fornecedor</label>
                         <select class="form-select" name="enc_forn" id="enc_forn">
-                            <option value="S" selected>Sim</option>
-                            <option value="N">Não</option>
+                            <option value="S" {% if filtros_guardados.enc_forn == 'S' %}selected{% endif %}>Sim</option>
+                            <option value="N" {% if filtros_guardados.enc_forn == 'N' %}selected{% endif %}>Não</option>
                         </select>
                     </div>
                     
                     <div class="col-md-3 col-6 mb-3">
                         <label class="filter-label">Utilização</label>
                         <select class="form-select" name="utilizacao" id="utilizacao">
-                            <option value="">Todos</option>
-                            <option value="M">Malha</option>
-                            <option value="T">Tecelagem</option>
-                            <option value="L">Lasso</option>
-                            <option value="F">Forte</option>
+                            <option value="" {% if filtros_guardados.utilizacao == '' %}selected{% endif %}>Todos</option>
+                            <option value="M" {% if filtros_guardados.utilizacao == 'M' %}selected{% endif %}>Malha</option>
+                            <option value="T" {% if filtros_guardados.utilizacao == 'T' %}selected{% endif %}>Tecelagem</option>
+                            <option value="L" {% if filtros_guardados.utilizacao == 'L' %}selected{% endif %}>Lasso</option>
+                            <option value="F" {% if filtros_guardados.utilizacao == 'F' %}selected{% endif %}>Forte</option>
                         </select>
                     </div>
                 </div>
@@ -200,9 +200,9 @@
                     <div class="col-md-6 mb-3">
                         <label class="filter-label">Tipo de Processo</label>
                         <select class="form-select" name="tipo_processo" id="tipo_processo">
-                            <option value="*">Todos</option>
+                            <option value="*" {% if filtros_guardados.tipo_processo == '*' %}selected{% endif %}>Todos</option>
                             {% for item in tipo_processo %}
-                                <option value="{{ item[0] }}" {% if item[0] == 'C' %}selected{% endif %}>
+                                <option value="{{ item[0] }}" {% if filtros_guardados.tipo_processo == item[0] %}selected{% endif %}>
                                     {{ item[1] }}
                                 </option>
                             {% endfor %}
@@ -288,7 +288,9 @@
 
 <script>
     function limparFiltros() {
-        document.getElementById('formExistencias').reset();
+        if (confirm('Deseja limpar todos os filtros guardados?')) {
+            window.location.href = "{{ url_for('limpar_filtros_existencias') }}";
+        }
     }
 
     // Adicionar comportamento dinâmico aos selects

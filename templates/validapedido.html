@@ -1,0 +1,354 @@
+{% extends "base.html" %}
+
+{% block title %}Validar Pedido{% endblock %}
+
+{% block extra_css %}
+<style>
+    .validacao-container {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-top: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .validacao-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .resumo-pedido {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-left: 4px solid #007bff;
+    }
+
+    .cliente-info {
+        background: #e3f2fd;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        text-align: center;
+        font-weight: bold;
+        color: #1976d2;
+    }
+
+    .produto-info {
+        background: #f3e5f5;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        text-align: center;
+        font-weight: bold;
+        color: #7b1fa2;
+    }
+
+    .dados-pedido {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .dado-item {
+        background: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 12px;
+        text-align: center;
+    }
+
+    .dado-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #6c757d;
+        margin-bottom: 5px;
+        text-transform: uppercase;
+    }
+
+    .dado-valor {
+        font-size: 16px;
+        font-weight: bold;
+        color: #333;
+    }
+
+    /* Alertas de Validação */
+    .alerta-validacao {
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        color: #721c24;
+    }
+
+    .alerta-titulo {
+        font-weight: bold;
+        font-size: 14px;
+        margin-bottom: 10px;
+        text-align: center;
+        text-transform: uppercase;
+    }
+
+    .alerta-detalhes {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        text-align: center;
+        font-size: 12px;
+    }
+
+    .alerta-detalhes .item {
+        background: rgba(255,255,255,0.7);
+        padding: 8px;
+        border-radius: 4px;
+    }
+
+    .alerta-detalhes .item.valor-limite { color: #007bff; }
+    .alerta-detalhes .item.valor-atual { color: #dc3545; }
+    .alerta-detalhes .item.valor-pedido { color: #28a745; }
+
+    /* Botões de Ação */
+    .acoes-container {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 30px;
+    }
+
+    .btn {
+        padding: 12px 25px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        min-width: 120px;
+    }
+
+    .btn-corrigir {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-corrigir:hover {
+        background: #545b62;
+        transform: translateY(-1px);
+    }
+
+    .btn-validar {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+
+    .btn-validar:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+    }
+
+    .btn-validar:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .checkbox-entrega {
+        margin: 20px 0;
+        text-align: center;
+    }
+
+    .checkbox-entrega input[type="checkbox"] {
+        margin-right: 8px;
+        transform: scale(1.2);
+    }
+
+    /* Responsividade */
+    @media screen and (max-width: 768px) {
+        .dados-pedido {
+            grid-template-columns: 1fr;
+        }
+        
+        .alerta-detalhes {
+            grid-template-columns: 1fr;
+        }
+        
+        .acoes-container {
+            flex-direction: column;
+        }
+        
+        .btn {
+            width: 100%;
+        }
+        
+        .validacao-container {
+            margin: 10px;
+            padding: 15px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="validacao-container">
+        <div class="validacao-header">
+            <h4><i class="bi bi-check-circle"></i> Validação de Pedido</h4>
+        </div>
+
+        <div class="resumo-pedido">
+            <h5 style="text-align: center; margin-bottom: 20px; color: #007bff;">RESUMO DE PEDIDO</h5>
+            
+            {% if dados.cliente_nome %}
+            <div class="cliente-info">{{ dados.cliente_nome }}</div>
+            {% endif %}
+            
+            {% if dados.produto_descricao %}
+            <div class="produto-info">{{ dados.produto_descricao }}</div>
+            {% endif %}
+            
+            <div class="dados-pedido">
+                <div class="dado-item">
+                    <div class="dado-label">Kgs</div>
+                    <div class="dado-valor">{{ '{:,.2f}'.format(pedido.quantidade) }}</div>
+                </div>
+                <div class="dado-item">
+                    <div class="dado-label">Preço</div>
+                    <div class="dado-valor">{{ '{:,.2f}'.format(pedido.preco) }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alertas de Validação -->
+        {% if validacoes.plafond_ultrapassado %}
+        <div class="alerta-validacao">
+            <div class="alerta-titulo">Plafond Ultrapassado</div>
+            <div class="alerta-detalhes">
+                <div class="item valor-limite">{{ '{:,.2f}'.format(dados.plafond) }}</div>
+                <div class="item valor-atual">{{ '{:,.2f}'.format(dados.plafond_usado) }}</div>
+                <div class="item valor-pedido">{{ '{:,.2f}'.format(dados.valor_encomenda) }}</div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if validacoes.lote_em_branco %}
+        <div class="alerta-validacao">
+            <div class="alerta-titulo">Lote em Branco</div>
+            <div style="text-align: center;">Sujeito a stock disponível</div>
+        </div>
+        {% endif %}
+
+        {% if validacoes.lote_inexistente %}
+        <div class="alerta-validacao">
+            <div class="alerta-titulo">Lote Inexistente</div>
+        </div>
+        {% endif %}
+
+        {% if validacoes.stock_indisponivel %}
+        <div class="alerta-validacao">
+            <div class="alerta-titulo">Stock Indisponível</div>
+            <div class="alerta-detalhes">
+                <div class="item" style="grid-column: 1 / -1;">
+                    <strong>Existência:</strong> {{ '{:,.2f}'.format(dados.existencia) }}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if validacoes.preco_fora_tabela %}
+        <div class="alerta-validacao">
+            <div class="alerta-titulo">Preço Fora da Tabela</div>
+            <div class="alerta-detalhes">
+                <div class="item valor-limite">{{ '{:,.2f}'.format(dados.preco_max) }}</div>
+                <div class="item valor-atual">{{ '{:,.2f}'.format(dados.preco_min) }}</div>
+                <div class="item valor-pedido">{{ '{:,.2f}'.format(pedido.preco) }}</div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if validacoes.quantidade_invalida %}
+        <div class="alerta-validacao">
+            <div class="alerta-titulo">Pedido Sem Quantidade</div>
+        </div>
+        {% endif %}
+
+        <!-- Debug Info (se disponível) -->
+        {% if request.args.get('debug') %}
+        <div style="background: #f8f9fa; padding: 15px; margin: 20px 0; border-radius: 8px; font-family: monospace; font-size: 12px;">
+            <h6>Informações de Debug:</h6>
+            <div>Código: {{ pedido.codigo }}</div>
+            <div>Lote: {{ pedido.lote }}</div>
+            <div>Cliente: {{ pedido.cliente }}</div>
+            <div>Preço: {{ pedido.preco }}</div>
+            <div>Quantidade: {{ pedido.quantidade }}</div>
+        </div>
+        {% endif %}
+
+        <!-- Checkbox para entrega imediata (se aplicável) -->
+        <div class="checkbox-entrega">
+            <label>
+                <input type="checkbox" name="entrega_imediata" value="1">
+                Entrega imediata
+            </label>
+        </div>
+
+        <!-- Botões de Ação -->
+        <div class="acoes-container">
+            <button type="button" class="btn btn-corrigir" onclick="history.back()">
+                <i class="bi bi-arrow-left"></i> Corrigir
+            </button>
+            
+            {% if validacoes.pode_validar %}
+            <form method="POST" action="{{ url_for('registar_pedido') }}" style="display: inline;">
+                <button type="submit" class="btn btn-validar" onclick="return confirmarPedido()">
+                    <i class="bi bi-check-circle"></i> Validar
+                </button>
+            </form>
+            {% else %}
+            <button type="button" class="btn btn-validar" disabled>
+                <i class="bi bi-x-circle"></i> Não Validável
+            </button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    function confirmarPedido() {
+        return confirm('Confirma a validação e criação deste pedido?');
+    }
+    
+    // Destacar alertas importantes
+    document.addEventListener('DOMContentLoaded', function() {
+        const alertas = document.querySelectorAll('.alerta-validacao');
+        alertas.forEach((alerta, index) => {
+            setTimeout(() => {
+                alerta.style.animation = 'fadeInUp 0.5s ease-out';
+            }, index * 100);
+        });
+    });
+    
+    // CSS animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    `;
+    document.head.appendChild(style);
+</script>
+{% endblock %}

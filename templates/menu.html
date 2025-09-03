@@ -16,8 +16,51 @@
 
     <!-- Menu Grid -->
     <div class="row">
-        <!-- Vendas Section -->
+        <!-- Artigos Section - MOVED TO FIRST -->
         <div class="col-12 mb-3">
+            <h4 class="text-primary">
+                <i class="bi bi-box-seam-fill"></i> Artigos e Stock
+            </h4>
+        </div>
+
+        <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="card menu-card" onclick="window.location.href='{{ url_for('artigos') }}'">
+                <div class="card-body text-center">
+                    <i class="bi bi-box-seam text-primary"></i>
+                    <h5 class="mt-2">Listar Artigos</h5>
+                </div>
+            </div>
+        </div>
+
+				<div class="col-lg-3 col-md-4 col-6 mb-4">
+						<div class="card menu-card" onclick="window.location.href='{{ url_for('existencias') }}'">
+								<div class="card-body text-center">
+										<i class="bi bi-search text-success"></i>
+										<h5 class="mt-2">Existências</h5>
+								</div>
+						</div>
+				</div>
+
+        <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="card menu-card" onclick="alert('Funcionalidade em desenvolvimento')">
+                <div class="card-body text-center">
+                    <i class="bi bi-tags text-warning"></i>
+                    <h5 class="mt-2">Preços</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="card menu-card" onclick="alert('Funcionalidade em desenvolvimento')">
+                <div class="card-body text-center">
+                    <i class="bi bi-upc-scan text-success"></i>
+                    <h5 class="mt-2">Lotes</h5>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vendas Section -->
+        <div class="col-12 mb-3 mt-3">
             <h4 class="text-primary">
                 <i class="bi bi-cart-fill"></i> Vendas e Pedidos
             </h4>
@@ -98,49 +141,6 @@
                 <div class="card-body text-center">
                     <i class="bi bi-credit-card text-danger"></i>
                     <h5 class="mt-2">Conta Corrente</h5>
-                </div>
-            </div>
-        </div>
-
-        <!-- Artigos Section -->
-        <div class="col-12 mb-3 mt-3">
-            <h4 class="text-primary">
-                <i class="bi bi-box-seam-fill"></i> Artigos e Stock
-            </h4>
-        </div>
-
-        <div class="col-lg-3 col-md-4 col-6 mb-4">
-            <div class="card menu-card" onclick="window.location.href='{{ url_for('artigos') }}'">
-                <div class="card-body text-center">
-                    <i class="bi bi-box-seam text-primary"></i>
-                    <h5 class="mt-2">Listar Artigos</h5>
-                </div>
-            </div>
-        </div>
-
-				<div class="col-lg-3 col-md-4 col-6 mb-4">
-						<div class="card menu-card" onclick="window.location.href='{{ url_for('existencias') }}'">
-								<div class="card-body text-center">
-										<i class="bi bi-search text-success"></i>
-										<h5 class="mt-2">Existências</h5>
-								</div>
-						</div>
-				</div>
-
-        <div class="col-lg-3 col-md-4 col-6 mb-4">
-            <div class="card menu-card" onclick="alert('Funcionalidade em desenvolvimento')">
-                <div class="card-body text-center">
-                    <i class="bi bi-tags text-warning"></i>
-                    <h5 class="mt-2">Preços</h5>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-3 col-md-4 col-6 mb-4">
-            <div class="card menu-card" onclick="alert('Funcionalidade em desenvolvimento')">
-                <div class="card-body text-center">
-                    <i class="bi bi-upc-scan text-success"></i>
-                    <h5 class="mt-2">Lotes</h5>
                 </div>
             </div>
         </div>

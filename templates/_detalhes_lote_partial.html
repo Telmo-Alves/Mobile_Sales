@@ -1,67 +1,242 @@
 {% if lotes %}
-<table class="table table-striped table-bordered table-sm">
-    <!-- First Group: Existência, Reservado, Disponível, Lote, PV, PV I, Custo -->
-    <thead class="thead-dark">
-        <tr>
-            <th class="text-right">Existência</th>
-            <th class="text-right">Reservado</th>
-            <th class="text-right">Disponível</th>
-            <th>Lote</th>
-            <th class="text-right">PV</th>
-            <th class="text-right">PV I</th>
-            {% if nivel_acesso > 0 %}
-                <th class="text-right">Custo</th>
-            {% endif %}
-        </tr>
-    </thead>
-    <tbody>
-        {% for lote in lotes %}
+<!-- Desktop Table (hidden on mobile) -->
+<div class="d-none d-md-block">
+    <table class="table table-striped table-bordered table-sm">
+        <!-- First Group: Existência, Reservado, Disponível, Lote, PV, PV I, Custo -->
+        <thead class="thead-dark">
             <tr>
-                <td class="text-right">{{ '%.2f'|format(lote.REXIST|float|default(0)) }}</td>
-                <td class="text-right">{{ '%.2f'|format(lote.RENCCLI|float|default(0)) }}</td>
-                <td class="text-right">{{ '%.2f'|format(lote.RSTKDISP|float|default(0)) }}</td>
-                <td>{{ lote.RLOTE }}</td>
-                <td class="text-right">{{ '%.2f'|format(lote.RPVP1|float|default(0)) }}</td>
-                <td class="text-right">{{ '%.2f'|format(lote.RPVP2|float|default(0)) }}</td>
+                <th class="text-right">Existência</th>
+                <th class="text-right">Reservado</th>
+                <th class="text-right">Disponível</th>
+                <th>Lote</th>
+                <th class="text-right">PV</th>
+                <th class="text-right">PV I</th>
                 {% if nivel_acesso > 0 %}
-                    <td class="text-right">
-                        {% if lote.RFIXACAO == 'S' %}
-                            {{ '%.2f'|format(lote.RPRECO_COMPRA|float|default(0)) }}
-                        {% else %}
-                            {{ '%.2f'|format(lote.RPRECO_COMPRA|float|default(0)) }}
-                        {% endif %}
-                    </td>
+                    <th class="text-right">Custo</th>
                 {% endif %}
+                <th class="text-center">Ações</th>
             </tr>
-        {% endfor %}
-    </tbody>
-    <!-- Second Group: Resultados Lab., Situação, Fornecedor -->
-    <thead class="thead-light">
-        <tr>
-            <th>Resultados Lab.</th>
-            <th>Situação</th>
-            {% if nivel_acesso > 0 %}
-                <th>Fornecedor</th>
-            {% endif %}
-            <!-- Empty cells to align with first group -->
-            <th colspan="{{ 4 if nivel_acesso > 0 else 3 }}"></th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for lote in lotes %}
+        </thead>
+        <tbody>
+            {% for lote in lotes %}
+                <tr>
+                    <td class="text-right">{{ '%.2f'|format(lote.REXIST|float|default(0)) }}</td>
+                    <td class="text-right">{{ '%.2f'|format(lote.RENCCLI|float|default(0)) }}</td>
+                    <td class="text-right">{{ '%.2f'|format(lote.RSTKDISP|float|default(0)) }}</td>
+                    <td>{{ lote.RLOTE }}</td>
+                    <td class="text-right">{{ '%.2f'|format(lote.RPVP1|float|default(0)) }}</td>
+                    <td class="text-right">{{ '%.2f'|format(lote.RPVP2|float|default(0)) }}</td>
+                    {% if nivel_acesso > 0 %}
+                        <td class="text-right">
+                            {% if lote.RFIXACAO == 'S' %}
+                                {{ '%.2f'|format(lote.RPRECO_COMPRA|float|default(0)) }}
+                            {% else %}
+                                {{ '%.2f'|format(lote.RPRECO_COMPRA|float|default(0)) }}
+                            {% endif %}
+                        </td>
+                    {% endif %}
+                    <td class="text-center">
+                        <div class="btn-group-desktop">
+                            <button class="btn-action-desktop btn-pedido-desktop" onclick="abrirPedido('{{ lote.RCODIGO }}', '{{ lote.RLOTE }}')" title="Fazer Pedido">
+                                <i class="bi bi-cart-plus"></i>
+                            </button>
+                            <button class="btn-action-desktop btn-reserva-desktop" onclick="abrirReservas('{{ lote.RCODIGO }}', '{{ lote.RLOTE }}')" title="Ver Reservas">
+                                <i class="bi bi-bookmark"></i>
+                            </button>
+                            <button class="btn-action-desktop btn-requisicao-desktop" onclick="abrirRequisicoes('{{ lote.RCODIGO }}', '{{ lote.RLOTE }}')" title="Requisições">
+                                <i class="bi bi-file-text"></i>
+                            </button>
+                            <button class="btn-action-desktop btn-extrato-desktop" onclick="abrirExtrato('{{ lote.RCODIGO }}', '{{ lote.RLOTE }}')" title="Ver Extrato">
+                                <i class="bi bi-list-ul"></i>
+                            </button>
+                            <button class="btn-action-desktop btn-obs-lab-desktop" onclick="abrirObsLab('{{ lote.RCODIGO }}', '{{ lote.RLOTE }}')" title="Observações Laboratório">
+                                <i class="bi bi-clipboard-data"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        <!-- Second Group: Resultados Lab., Situação, Fornecedor -->
+        <thead class="thead-light">
             <tr>
-                <td>{{ lote.LAB_RESULTS|safe }}</td>
-                <td>{{ lote.RTIPOSITU }}</td>
+                <th>Resultados Lab.</th>
+                <th>Situação</th>
                 {% if nivel_acesso > 0 %}
-                    <td>{{ lote.RNOMEFOR[:20] if lote.RNOMEFOR else '' }}</td>
+                    <th>Fornecedor</th>
                 {% endif %}
                 <!-- Empty cells to align with first group -->
-                <td colspan="{{ 4 if nivel_acesso > 0 else 3 }}"></td>
+                <th colspan="{{ 5 if nivel_acesso > 0 else 4 }}"></th>
             </tr>
-        {% endfor %}
-    </tbody>
+        </thead>
+        <tbody>
+            {% for lote in lotes %}
+                <tr>
+                    <td>{{ lote.LAB_RESULTS|safe }}</td>
+                    <td>{{ lote.RTIPOSITU }}</td>
+                    {% if nivel_acesso > 0 %}
+                        <td>{{ lote.RNOMEFOR[:20] if lote.RNOMEFOR else '' }}</td>
+                    {% endif %}
+                    <!-- Empty cells to align with first group -->
+                    <td colspan="{{ 5 if nivel_acesso > 0 else 4 }}"></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        {% if nivel_acesso > 0 %}
+            <tfoot>
+                {% set pmc_qt = lotes|selectattr('RSTKDISP', 'gt', 0)|map(attribute='RSTKDISP')|map('float')|sum %}
+                {% set pmc_exist = 0.0 %}
+                {% for lote in lotes %}
+                    {% if lote.RSTKDISP|float > 0 %}
+                        {% set pmc_exist = pmc_exist + ((lote.RSTKDISP|float) * (lote.RPRECO_COMPRA|float)) %}
+                    {% endif %}
+                {% endfor %}
+                {% if pmc_qt > 0 %}
+                    {% set pmc = pmc_exist / pmc_qt %}
+                {% else %}
+                    {% set pmc = 0 %}
+                {% endif %}
+                <tr>
+                    <td colspan="{{ 7 if nivel_acesso > 0 else 6 }}" class="text-right font-weight-bold">Preços Médios...</td>
+                    <td class="font-weight-bold text-right">{{ '%.2f'|format(pmc) }}</td>
+                </tr>
+            </tfoot>
+        {% endif %}
+    </table>
+</div>
+
+<!-- Mobile Card Layout (visible only on mobile) -->
+<div class="d-md-none">
+    {% for lote in lotes %}
+        <div class="lote-card mb-3">
+            <div class="lote-card-header">
+                <div class="lote-header-main">
+                    <strong>{{ lote.RLOTE }}</strong>
+                    {% if lote.RTIPOSITU %}
+                        <span class="lote-situacao">{{ lote.RTIPOSITU }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="lote-card-body">
+                <!-- Stock Information Row -->
+                <div class="row no-gutters">
+                    <div class="col-4 px-1">
+                        <div class="lote-field">
+                            <div class="lote-label">Exist.</div>
+                            <div class="lote-value text-success">{{ '{:,.0f}'.format(lote.REXIST|float|default(0)) }}</div>
+                        </div>
+                    </div>
+                    <div class="col-4 px-1">
+                        <div class="lote-field">
+                            <div class="lote-label">Reserv.</div>
+                            <div class="lote-value text-warning">{{ '{:,.0f}'.format(lote.RENCCLI|float|default(0)) }}</div>
+                        </div>
+                    </div>
+                    <div class="col-4 px-1">
+                        <div class="lote-field">
+                            <div class="lote-label">Dispon.</div>
+                            <div class="lote-value text-primary">{{ '{:,.0f}'.format(lote.RSTKDISP|float|default(0)) }}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Price Information Row -->
+                <div class="row no-gutters mt-2">
+                    {% if nivel_acesso > 0 %}
+                    <div class="col-4 px-1">
+                        <div class="lote-field">
+                            <div class="lote-label">PV</div>
+                            <div class="lote-value">{{ '%.2f'|format(lote.RPVP1|float|default(0)) }}</div>
+                        </div>
+                    </div>
+                    <div class="col-4 px-1">
+                        <div class="lote-field">
+                            <div class="lote-label">PV Ind.</div>
+                            <div class="lote-value">{{ '%.2f'|format(lote.RPVP2|float|default(0)) }}</div>
+                        </div>
+                    </div>
+                    <div class="col-4 px-1">
+                        <div class="lote-field">
+                            <div class="lote-label">Custo</div>
+                            <div class="lote-value text-info">
+                                {{ '%.2f'|format(lote.RPRECO_COMPRA|float|default(0)) }}
+                                {% if lote.RFIXACAO == 'S' %}<i class="bi bi-lock-fill text-warning" title="Preço fixado"></i>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="col-6 px-1">
+                        <div class="lote-field">
+                            <div class="lote-label">Preço Venda</div>
+                            <div class="lote-value">{{ '%.2f'|format(lote.RPVP1|float|default(0)) }}</div>
+                        </div>
+                    </div>
+                    <div class="col-6 px-1">
+                        <div class="lote-field">
+                            <div class="lote-label">PV Industrial</div>
+                            <div class="lote-value">{{ '%.2f'|format(lote.RPVP2|float|default(0)) }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Additional Info Row -->
+                {% if nivel_acesso > 0 and lote.RNOMEFOR %}
+                <div class="row no-gutters mt-2">
+                    <div class="col-12">
+                        <div class="lote-field-horizontal">
+                            <span class="lote-label">Fornecedor:</span>
+                            <span class="lote-value-inline">{{ lote.RNOMEFOR[:25] }}{% if lote.RNOMEFOR|length > 25 %}...{% endif %}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if lote.LAB_RESULTS %}
+                <div class="row no-gutters mt-2">
+                    <div class="col-12">
+                        <div class="lote-field-horizontal">
+                            <span class="lote-label">Lab:</span>
+                            <div class="lote-lab-results-inline">{{ lote.LAB_RESULTS|safe }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Action Buttons Row -->
+                <div class="row no-gutters mt-3">
+                    <div class="col-12">
+                        <div class="lote-actions">
+                            <button class="btn-action btn-pedido" onclick="abrirPedido('{{ lote.RCODIGO }}', '{{ lote.RLOTE }}')" title="Fazer Pedido">
+                                <i class="bi bi-cart-plus"></i>
+                                <span>Pedido</span>
+                            </button>
+                            <button class="btn-action btn-reserva" onclick="abrirReservas('{{ lote.RCODIGO }}', '{{ lote.RLOTE }}')" title="Ver Reservas">
+                                <i class="bi bi-bookmark"></i>
+                                <span>Reservas</span>
+                            </button>
+                            <button class="btn-action btn-requisicao" onclick="abrirRequisicoes('{{ lote.RCODIGO }}', '{{ lote.RLOTE }}')" title="Requisições">
+                                <i class="bi bi-file-text"></i>
+                                <span>Requisições</span>
+                            </button>
+                            <button class="btn-action btn-extrato" onclick="abrirExtrato('{{ lote.RCODIGO }}', '{{ lote.RLOTE }}')" title="Ver Extrato">
+                                <i class="bi bi-list-ul"></i>
+                                <span>Extrato</span>
+                            </button>
+                            <button class="btn-action btn-obs-lab" onclick="abrirObsLab('{{ lote.RCODIGO }}', '{{ lote.RLOTE }}')" title="Observações Laboratório">
+                                <i class="bi bi-clipboard-data"></i>
+                                <span>Obs Lab</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+    
     {% if nivel_acesso > 0 %}
-        <tfoot>
+        <!-- Mobile summary card -->
+        <div class="lote-summary-card mt-3">
             {% set pmc_qt = lotes|selectattr('RSTKDISP', 'gt', 0)|map(attribute='RSTKDISP')|map('float')|sum %}
             {% set pmc_exist = 0.0 %}
             {% for lote in lotes %}
@@ -74,13 +249,11 @@
             {% else %}
                 {% set pmc = 0 %}
             {% endif %}
-            <tr>
-                <td colspan="{{ 6 if nivel_acesso > 0 else 5 }}" class="text-right font-weight-bold">Preços Médios...</td>
-                <td class="font-weight-bold text-right">{{ '%.2f'|format(pmc) }}</td>
-            </tr>
-        </tfoot>
+            <div class="lote-summary-header">Preço Médio de Custo</div>
+            <div class="lote-summary-value">{{ '%.2f'|format(pmc) }}</div>
+        </div>
     {% endif %}
-</table>
+</div>
 
 {% if debug %}
     <div class="mt-3">
