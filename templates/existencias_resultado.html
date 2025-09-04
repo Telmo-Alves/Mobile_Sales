@@ -105,18 +105,18 @@
 
     .produto-link {
         text-decoration: none;
-        font-weight: 600;
+        font-weight: 500;
         font-size: 16px;
-        color: #007bff;
+        color: #495057;
         line-height: 1.4;
         word-wrap: break-word;
-        cursor: pointer;
+        cursor: default;
         transition: color 0.2s;
     }
 
     .produto-link:hover {
-        color: #0056b3;
-        text-decoration: underline;
+        color: #495057;
+        text-decoration: none;
     }
 
     /* Substituto */
@@ -210,6 +210,48 @@
         background: #f8f9fa;
         border-top: 1px solid #e8ecef;
         animation: fadeIn 0.3s ease;
+        overflow-x: auto;
+        max-width: 100%;
+    }
+    
+    /* Garantir que as tabelas desktop não sejam cortadas */
+    .card-details .table {
+        min-width: 800px; /* Largura mínima para desktop */
+    }
+    
+    .card-details .d-none.d-md-block {
+        overflow-x: auto;
+        padding: 15px;
+    }
+
+    /* Botão Ver Detalhes */
+    .btn-detalhes {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        box-shadow: 0 2px 8px rgba(0,123,255,0.2);
+    }
+
+    .btn-detalhes:hover {
+        background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,123,255,0.3);
+        color: white;
+    }
+
+    .btn-detalhes:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 8px rgba(0,123,255,0.2);
     }
 
     /* Área de sem resultados */
@@ -376,6 +418,13 @@
         
         .card-body {
             padding: 12px;
+        }
+        
+        .btn-detalhes {
+            padding: 10px 16px;
+            font-size: 13px;
+            width: 100%;
+            justify-content: center;
         }
         
         .produto-info {
@@ -786,12 +835,9 @@
                     <!-- Descrição do Produto -->
                     <div class="card-body">
                         <div class="produto-descricao">
-                            <a class="produto-link toggle-detalhes" 
-                               data-codigo="{{ codigo }}" 
-                               data-target="#detalhes-{{ codigo.replace('.', '-') }}"
-                               title="{{ item[0] }}">
+                            <span class="produto-link" title="{{ item[0] }}">
                                 {{ descricao }}
-                            </a>
+                            </span>
                         </div>
                         
                         {% if codigo_substituto and codigo_substituto != '' %}
@@ -833,6 +879,16 @@
                                     <div class="stat-value stat-highlight">{{ '{:,.0f}'.format(disponivel) }}</div>
                                 </div>
                             </div>
+                        </div>
+                        
+                        <!-- Botão Ver Detalhes -->
+                        <div style="margin-top: 16px; text-align: center;">
+                            <button class="btn-detalhes toggle-detalhes" 
+                                    data-codigo="{{ codigo }}" 
+                                    data-target="#detalhes-{{ codigo.replace('.', '-') }}"
+                                    title="Ver detalhes dos lotes para {{ codigo }}">
+                                <i class="bi bi-eye"></i> Ver Detalhes dos Lotes
+                            </button>
                         </div>
                     </div>
                     

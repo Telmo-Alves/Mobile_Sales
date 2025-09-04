@@ -6,6 +6,12 @@ from functools import wraps
 from config import FIREBIRD_CONFIG, WAREHOUSE_CONFIG, SECRET_KEY
 import hashlib
 
+# Import database abstraction layer
+from database import (
+    existencias_repo, pedidos_repo, reservas_repo, 
+    clientes_repo, artigos_repo, auth_repo
+)
+
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
 app.permanent_session_lifetime = timedelta(hours=8)
@@ -72,40 +78,40 @@ def login():
                 conn.close()
                 return render_template('login.html')
             
-            # Validar login - Agora incluindo o campo NIVEL
-            cursor.execute("""
-                SELECT Utilizador, Senha, Vendedor, Nivel
-                FROM Utiliza_Web
-                WHERE Utilizador = ? AND Senha = ?
-            """, (utilizador_busca, password))
-            
-            user_data = cursor.fetchone()
-            
-            if user_data:
-                # Login válido - guardar dados na sessão
-                session.permanent = True
-                session['user'] = user_data[0]      # Utilizador (U01, U02, etc)
-                session['vendedor'] = user_data[2]  # Vendedor (INTEGER: 1, 2, 20, 99)
-                session['password'] = password       # Password
-                session['validar'] = 1
-                session['login_time'] = datetime.now().isoformat()
+            # Use AuthRepository for authentication
+            try:
+                user_data = auth_repo.authenticate_user(utilizador_busca, password)
                 
-                # Obter nível de acesso diretamente da BD
-                vendedor = user_data[2]  # Já é um integer
-                nivel_acesso = user_data[3] or 0  # Campo NIVEL da tabela, default 0 se NULL
-                
-                print(f"DEBUG Login - Vendedor: {vendedor} (tipo: {type(vendedor)}), Nível: {nivel_acesso}")
-                
-                session['nivel_acesso'] = nivel_acesso
-                
-                # Mensagem de boas-vindas
-                flash(f'Bem-vindo, Vendedor {vendedor}!', 'success')
-                
-                print(f"DEBUG Login Sucesso - User: {user_data[0]}, Vendedor: {vendedor}, Nível: {nivel_acesso}")
-                
-                cursor.close()
-                conn.close()
-                return redirect(url_for('dashboard'))
+                if user_data:
+                    # Login successful - save session data
+                    session.permanent = True
+                    session['user'] = utilizador_busca
+                    session['vendedor'] = user_data['vendedor']
+                    session['password'] = password
+                    session['validar'] = 1
+                    session['login_time'] = datetime.now().isoformat()
+                    session['nivel_acesso'] = user_data['nivel_acesso']
+                    
+                    vendedor = user_data['vendedor']
+                    nivel_acesso = user_data['nivel_acesso']
+                    
+                    print(f"DEBUG Login - Vendedor: {vendedor} (tipo: {type(vendedor)}), Nível: {nivel_acesso}")
+                    
+                    # Welcome message
+                    flash(f'Bem-vindo, Vendedor {vendedor}!', 'success')
+                    
+                    print(f"DEBUG Login Sucesso - User: {utilizador_busca}, Vendedor: {vendedor}, Nível: {nivel_acesso}")
+                    
+                    cursor.close()
+                    conn.close()
+                    return redirect(url_for('dashboard'))
+                else:
+                    flash('Utilizador ou senha inválidos', 'danger')
+                    print(f"DEBUG Login Falhou - Tentou: {utilizador_busca}")
+                    
+            except Exception as e:
+                app.logger.error(f"Erro na autenticação: {str(e)}")
+                flash('Erro interno na autenticação. Tente novamente.', 'error')
             else:
                 flash('Utilizador ou senha inválidos', 'danger')
                 print(f"DEBUG Login Falhou - Tentou: {utilizador_busca}")
@@ -221,47 +227,29 @@ def artigos():
 @app.route('/pedidos')
 @login_required
 def pedidos():
-    """Lista de pedidos - Seguindo lógica do listapedidos.php"""
+    """Lista de pedidos usando PedidosRepository"""
     pedidos_list = []
-    conn = get_db_connection()
     
-    if conn:
-        try:
-            cursor = conn.cursor()
-            
-            # Mesma query do PHP com mesma lógica de acesso
-            vendedor = session.get('vendedor', 0)
-            
-            cursor.execute("""
-                SELECT FIRST 100
-                    P.Pedido, P.Quantidade, P.Preco, P.Lote, A.Descricao, 
-                    C.Nome1 as Cliente, P.Estado, P.Dt_Registo
-                FROM Pda_Pedidos P 
-                LEFT OUTER JOIN Artigos A ON A.Codigo = P.Codigo 
-                LEFT OUTER JOIN Locais_Entrega C ON C.Cliente = P.Cliente AND C.local_id = 'SEDE'
-                WHERE ( ( P.Vendedor = ? ) OR ( ? = 1 ) OR ( ? = 99 ) )
-                ORDER BY P.Dt_Registo DESC, P.Pedido DESC
-            """, (vendedor, vendedor, vendedor))
-            
-            # Converter resultados para lista de dicts para facilitar uso no template
-            columns = [desc[0] for desc in cursor.description]
-            pedidos_list = [dict(zip(columns, row)) for row in cursor.fetchall()]
-            
-            cursor.close()
-            conn.close()
-            
-        except Exception as e:
-            flash(f'Erro ao carregar pedidos: {str(e)}', 'warning')
-            app.logger.error(f"Erro ao carregar pedidos: {str(e)}")
-            if conn:
-                conn.close()
+    try:
+        vendedor = session.get('vendedor', 0)
+        
+        # Use PedidosRepository for orders list
+        pedidos_data = pedidos_repo.get_orders_list(vendedor)
+        
+        # Convert to list of dicts for template use - using uppercase keys to match template
+        columns = ['PEDIDO', 'QUANTIDADE', 'PRECO', 'LOTE', 'DESCRICAO', 'CLIENTE', 'ESTADO', 'DT_REGISTO']
+        pedidos_list = [dict(zip(columns, row)) for row in pedidos_data]
+        
+    except Exception as e:
+        flash(f'Erro ao carregar pedidos: {str(e)}', 'warning')
+        app.logger.error(f"Erro ao carregar pedidos: {str(e)}")
     
     return render_template('pedidos.html', pedidos=pedidos_list)
 
 @app.route('/anular_pedido', methods=['POST'])
 @login_required
 def anular_pedido():
-    """Anular um pedido - Muda estado para 'C' (Cancelado)"""
+    """Anular um pedido usando PedidosRepository"""
     pedido_num = request.form.get('pedido')
     
     if not pedido_num:
@@ -269,61 +257,19 @@ def anular_pedido():
     
     try:
         pedido_num = int(pedido_num)
+        vendedor = session.get('vendedor', 0)
+        
+        # Use PedidosRepository for cancellation logic
+        result = pedidos_repo.cancel_order(pedido_num, vendedor)
+        
+        if result['success']:
+            app.logger.info(f"Pedido {pedido_num} anulado por utilizador {session.get('user')}")
+        
+        return jsonify(result)
+        
     except ValueError:
         return jsonify({'success': False, 'error': 'Número do pedido inválido'})
-    
-    conn = get_db_connection()
-    if not conn:
-        return jsonify({'success': False, 'error': 'Erro de conexão à base de dados'})
-    
-    try:
-        cursor = conn.cursor()
-        
-        # Verificar se o pedido existe e pertence ao vendedor (ou se é admin)
-        vendedor = session.get('vendedor', 0)
-        cursor.execute("""
-            SELECT Estado, Vendedor 
-            FROM Pda_Pedidos 
-            WHERE Pedido = ?
-        """, (pedido_num,))
-        
-        pedido_data = cursor.fetchone()
-        
-        if not pedido_data:
-            return jsonify({'success': False, 'error': 'Pedido não encontrado'})
-        
-        estado_atual, vendedor_pedido = pedido_data
-        
-        # Verificar permissões (igual à lógica do listapedidos.php)
-        if not ((vendedor_pedido == vendedor) or (vendedor == 1) or (vendedor == 99)):
-            return jsonify({'success': False, 'error': 'Sem permissões para anular este pedido'})
-        
-        # Verificar se o pedido já está cancelado ou finalizado
-        if estado_atual in ['C', 'F']:
-            estado_desc = 'Cancelado' if estado_atual == 'C' else 'Finalizado'
-            return jsonify({'success': False, 'error': f'Pedido já está {estado_desc}'})
-        
-        # Anular o pedido (mudar estado para 'C')
-        cursor.execute("""
-            UPDATE Pda_Pedidos 
-            SET Estado = 'C'
-            WHERE Pedido = ?
-        """, (pedido_num,))
-        
-        conn.commit()
-        
-        app.logger.info(f"Pedido {pedido_num} anulado por utilizador {session.get('user')}")
-        
-        cursor.close()
-        conn.close()
-        
-        return jsonify({'success': True, 'message': f'Pedido {pedido_num} anulado com sucesso'})
-        
     except Exception as e:
-        if conn:
-            conn.rollback()
-            conn.close()
-        
         app.logger.error(f"Erro ao anular pedido {pedido_num}: {str(e)}")
         return jsonify({'success': False, 'error': f'Erro ao anular pedido: {str(e)}'})
 
@@ -641,53 +587,42 @@ def existencias_consulta():
         flash('Funcionalidade de preços em desenvolvimento', 'info')
         return redirect(url_for('existencias'))
     
-    # Para consultar, buscar resultados
+    # Use ExistenciasRepository for product search
     resultados = []
     artigos_sem_stock = []
-    conn = get_db_connection()
     
-    if conn:
-        try:
-            cursor = conn.cursor()
-            
-            # Chamar stored procedure Inq_Exist_Lote_Pda - usando configurações de armazém
-            arm_ini = WAREHOUSE_CONFIG.get('arm_ini', 1)
-            arm_fim = WAREHOUSE_CONFIG.get('arm_fim', 999)
-            
-            sql = """
-                SELECT RDescricao, RCodigo, RCodigoSubstituto, 
-                       SUM(RExist) as TotalExist,
-                       SUM(REncCli) as TotalEncCli,
-                       SUM(RExist - REncCli) as Disponivel
-                FROM Inq_Exist_Lote_Pda(?, ?, ?, ?, 'TUDO', 0, '31.12.3000', 'S', '31.12.3000', 0, 'S', 1, 2, 2)
-                WHERE RCodigo STARTING WITH ?
-                GROUP BY RDescricao, RCodigo, RCodigoSubstituto
-                ORDER BY RCodigo ASC
-            """
-            
-            codigo_fim = codigo_artigo + 'z'
-            cursor.execute(sql, (codigo_artigo, codigo_fim, arm_ini, arm_fim, codigo_artigo))
-            
-            resultados = cursor.fetchall()
-            
-            # Se não houver resultados com stock, verificar se artigos existem
-            if not resultados:
-                cursor.execute("""
-                    SELECT Codigo, Descricao 
-                    FROM Artigos 
-                    WHERE Codigo STARTING WITH ?
-                    ORDER BY Codigo
-                """, (codigo_artigo,))
-                
-                artigos_sem_stock = cursor.fetchall()
-            
-            cursor.close()
-            conn.close()
-            
-        except Exception as e:
-            flash(f'Erro na consulta: {str(e)}', 'danger')
+    try:
+        # Get enc_forn from session (set during login based on vendor)
+        enc_forn = session.get('enc_forn', 'S')
+        
+        # Use repository to search products
+        resultados = existencias_repo.search_products(codigo_artigo, enc_forn)
+        
+        # If no results with stock, check if products exist without stock
+        if not resultados:
+            # This would need a new method in the repository, for now use direct query
+            conn = get_db_connection()
             if conn:
-                conn.close()
+                try:
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        SELECT Codigo, Descricao 
+                        FROM Artigos 
+                        WHERE Codigo STARTING WITH ?
+                        ORDER BY Codigo
+                    """, (codigo_artigo,))
+                    
+                    artigos_sem_stock = cursor.fetchall()
+                    cursor.close()
+                    conn.close()
+                except Exception as e:
+                    app.logger.error(f"Erro ao verificar artigos sem stock: {str(e)}")
+                    if conn:
+                        conn.close()
+            
+    except Exception as e:
+        flash(f'Erro na consulta: {str(e)}', 'danger')
+        app.logger.error(f"Erro na consulta de existências: {str(e)}")
     
     return render_template('existencias_resultado.html',
                          resultados=resultados,
@@ -830,45 +765,36 @@ def detalhes_lote(codigo):
         main_cursor = conn.cursor()
         lab_cursor = conn.cursor()
 
-        # Query exata do listaexist.php (linha 62-66) - usando configurações de armazém
-        arm_ini = WAREHOUSE_CONFIG.get('arm_ini', 1)
-        arm_fim = WAREHOUSE_CONFIG.get('arm_fim', 999)
-        
-        sql = """
-            SELECT RCodigo, RLote, RLoteFor, RExist, (RExist - REncCli + REncFor) as RStkDisp,
-                   REncCli, RFornec, RNomeFor, RDescricao, RTipoSitua, RPvp1, RPvp2, RPreco_UN, RMoeda,
-                   RCond_Entrega, RChave, RTipoNivel, RNivel, RPvp3, RPvp4, RTipoSituaDesc, RCodigo_Cor,
-                   RArmazem, RPreco_Compra, RSigla, RFixacao, RForma_Pag_Desc, RPrazo_NDias
-            FROM Inq_Exist_Lote_Pda_2(?, ?, ?, ?, 'ACT', 0, '31.12.3000', ?, '31.12.3000', 0, 'S', 1, 2, 2)
-            ORDER BY RChave ASC, RExist ASC, ROrdem
-        """
-        
-        debug_info['sql'] = sql
+        # Use ExistenciasRepository for product details
         enc_forn = session.get('enc_forn', 'S')
-        
-        # Usar o nível de acesso já calculado no login
         nivel_acesso = session.get('nivel_acesso', 0)
         cd_vend = session.get('cd_vend', session.get('vendedor', ''))
         vendedor = session.get('vendedor', session.get('cd_vend', ''))
 
-        # DEBUG: Mostrar parâmetros
-        print(f"DEBUG - Executando SQL com parâmetros: codigo={codigo}, enc_forn={enc_forn}")
-        print(f"DEBUG - Sessão: user={session.get('user')}, vendedor={session.get('vendedor')}, nivel_acesso={session.get('nivel_acesso')}")
+        # DEBUG: Show parameters
+        print(f"DEBUG - Executando com parâmetros: codigo={codigo}, enc_forn={enc_forn}")
+        print(f"DEBUG - Sessão: user={session.get('user')}, vendedor={vendedor}, nivel_acesso={nivel_acesso}")
         
-        main_cursor.execute(sql, (codigo, codigo, arm_ini, arm_fim, enc_forn))
+        # Get product details using repository
+        lotes_data = existencias_repo.get_product_details(codigo, enc_forn)
         
-            
-        # DEBUG: Adicionar informação de sessão
         debug_info['cd_vend'] = cd_vend
         debug_info['vendedor'] = vendedor
         debug_info['nivel_acesso'] = nivel_acesso
         debug_info['nivel_acesso_sessao'] = session.get('nivel_acesso', 'N/A')
 
-        for row in main_cursor.fetchall():
-            lote_data = dict(zip([desc[0] for desc in main_cursor.description], row))
+        # Convert to dict format and add lab results - using uppercase keys to match template
+        columns = ['RCODIGO', 'RLOTE', 'RLOTEFOR', 'REXIST', 'RSTKDISP', 'RENCCLI', 'RFORNEC', 'RNOMEFOR', 
+                  'RDESCRICAO', 'RTIPOSITUA', 'RPVP1', 'RPVP2', 'RPRECO_UN', 'RMOEDA', 'RCOND_ENTREGA', 
+                  'RCHAVE', 'RTIPONIVEL', 'RNIVEL', 'RPVP3', 'RPVP4', 'RTIPOSITUADESC', 'RCODIGO_COR',
+                  'RARMAZEM', 'RPRECO_COMPRA', 'RSIGLA', 'RFIXACAO', 'RFORMA_PAG_DESC', 'RPRAZO_NDIAS']
+        
+        for row in lotes_data:
+            lote_data = dict(zip(columns, row))
             
-            # Buscar resultados do laboratório (como no PHP)
-            lote_data['LAB_RESULTS'] = get_lab_results(lab_cursor, lote_data['RCODIGO'], lote_data['RLOTE'])
+            # Get lab results using repository
+            lab_results = existencias_repo.get_lab_results(lote_data['RCODIGO'], lote_data['RLOTE'])
+            lote_data['LAB_RESULTS'] = lab_results
             
             lotes.append(lote_data)
             
@@ -1222,79 +1148,33 @@ def validar_pedido():
 @app.route('/registapedido', methods=['POST'])
 @login_required 
 def registar_pedido():
-    """Registar o pedido após validação"""
+    """Registar o pedido usando PedidosRepository"""
     pedido_validado = session.get('pedido_validado')
     
     if not pedido_validado:
         flash('Pedido não encontrado. Por favor, tente novamente.', 'error')
         return redirect(url_for('existencias'))
     
-    conn = get_db_connection()
-    if not conn:
-        flash('Erro de conexão à base de dados.', 'error')
-        return redirect(url_for('existencias'))
-    
     try:
-        cursor = conn.cursor()
+        # Add vendor info to order data
+        pedido_validado['vendedor'] = session.get('vendedor', 0)
         
-        # 1. Preparar dados para inserção (seguindo lógica PHP legacy)
-        utilizador = FIREBIRD_CONFIG['user']  # Usar utilizador da BD como no PHP
-        vendedor = session.get('vendedor', 0)
-        estado = 'P'  # Pendente
-        armazem_fixo = WAREHOUSE_CONFIG.get('arm_ini', 1)  # Usar armazém inicial das configurações
+        # Use PedidosRepository to create order
+        success = pedidos_repo.create_order(pedido_validado)
         
-        # 2. Definir marca baseada em session (como no PHP)
-        marca = session.get('R_Marca', '')  # Vazio por padrão, '*' se tiver Kgs
-        
-        # 3. Inserir pedido na tabela PDA_PEDIDOS (PEDIDO=0 para auto-increment)
-        sql_insert = """
-            INSERT INTO PDA_PEDIDOS (
-                PEDIDO, UTILIZADOR, DT_REGISTO, DT_ENTREGA, CODIGO, ARMAZEM, LOTE,
-                QUANTIDADE, MARCA, CLIENTE, LOCAL_ID, PRECO, ESTADO, VENDEDOR,
-                OBSERVACOES, OBSERVACOES2, AVISOS
-            ) VALUES (
-                0, ?, CURRENT_TIMESTAMP, ?,
-                ?, ?, ?, ?, ?, ?, ?, ?,
-                'P', ?, ?, ?, ?
-            )
-        """
-        
-        params = (
-            utilizador,
-            pedido_validado.get('entrega', ''),
-            pedido_validado.get('codigo', ''),
-            armazem_fixo,
-            pedido_validado.get('lote', ''),
-            pedido_validado.get('quantidade', 0),
-            marca,
-            pedido_validado.get('cliente', ''),
-            pedido_validado.get('local_entrega', ''),
-            pedido_validado.get('preco', 0),
-            vendedor,
-            pedido_validado.get('obs', ''),
-            pedido_validado.get('obs2', ''),
-            pedido_validado.get('avisos', '0000000')
-        )
-        
-        cursor.execute(sql_insert, params)
-        conn.commit()
-        
-        app.logger.info(f"Pedido criado com sucesso para utilizador {utilizador}")
-        
-        # Limpar dados da sessão
-        session.pop('pedido_dados', None)
-        session.pop('pedido_validado', None)
-        
-        flash(f'REGISTO INTRODUZIDO COM SUCESSO! Código: {pedido_validado["codigo"]}, Lote: {pedido_validado["lote"]}, Quantidade: {pedido_validado["quantidade"]:.2f}', 'success')
-        
-        cursor.close()
-        conn.close()
-        
+        if success:
+            # Clear session data
+            session.pop('pedido_dados', None)
+            session.pop('pedido_validado', None)
+            
+            flash(f'REGISTO INTRODUZIDO COM SUCESSO! Código: {pedido_validado["codigo"]}, Lote: {pedido_validado["lote"]}, Quantidade: {pedido_validado["quantidade"]:.2f}', 'success')
+            app.logger.info(f"Pedido criado com sucesso para utilizador {session.get('user')}")
+        else:
+            flash('Erro ao registar pedido. Tente novamente.', 'error')
+            
     except Exception as e:
-        flash(f'Erro ao registar pedido: {str(e)}', 'error')
         app.logger.error(f"Erro no registo de pedido: {str(e)}")
-        if conn:
-            conn.close()
+        flash(f'Erro ao registar pedido: {str(e)}', 'error')
     
     return redirect(url_for('existencias'))
 
@@ -1447,81 +1327,35 @@ DEBUG = True
 @app.route('/reservas/<codigo>/<lote>')
 @login_required
 def lista_reservas(codigo, lote):
-    """Lista reservas/encomendas de clientes para um produto específico"""
-    
-    reservas = []
-    info_artigo = None
+    """Lista reservas/encomendas usando ReservasRepository"""
     fornecedor = request.args.get('fornecedor', '')
     
-    conn = get_db_connection()
-    if conn:
-        try:
-            cursor = conn.cursor()
-            
-            # Buscar informação do artigo
-            cursor.execute("""
-                SELECT Codigo, Descricao
-                FROM Artigos 
-                WHERE Codigo = ?
-            """, (codigo,))
-            info_artigo = cursor.fetchone()
-            
-            # Usar configurações dos armazéns do config.py
-            arm_ini = WAREHOUSE_CONFIG.get('arm_ini', 1)
-            arm_fim = WAREHOUSE_CONFIG.get('arm_fim', 999)
-            
-            # Query exatamente igual ao PHP original
-            sql_query = """
-                SELECT I.RData, I.RQuant1, I.RQuant2, I.RPreco_Un, I.RNomeTerc, 
-                       I.RDataEnt, I.RCodigo, I.RLote, I.RSerie, I.RNumero, 
-                       I.RTerceiro, L.Vendedor, I.RLinha, I.RArmazem, A.Descricao
-                FROM Inq_Exist_Lote_Enc2(?, ?, ?, ?, ?, '31.12.3000', 'E', 'S', 1, 2, 2) I
-                LEFT OUTER JOIN Locais_Entrega L ON L.Cliente = I.RTerceiro AND L.Local_ID = 'SEDE'
-                LEFT OUTER JOIN Artigos A ON A.Codigo = I.RCodigo
-            """
-            
-            vendedor = session.get('cd_vend', 0)
-            
-            # Converter fornecedor para int (como no PHP: $E_Fornecedor)
-            try:
-                fornecedor_int = int(fornecedor) if fornecedor and fornecedor.strip() else 0
-            except (ValueError, AttributeError):
-                fornecedor_int = 0
-                
-            app.logger.debug(f"Reservas Query - Codigo: {codigo}, Lote: {lote}, ArmIni: {arm_ini}, ArmFim: {arm_fim}, Fornecedor: {fornecedor_int}, Vendedor: {vendedor}")
-            
-            # Executar query com parâmetros como no PHP
-            cursor.execute(sql_query, (codigo, lote, arm_ini, arm_fim, fornecedor_int))
-            
-            # Buscar todos os resultados
-            todas_reservas = cursor.fetchall()
-            reservas = []
-            
-            # Aplicar filtros como no PHP original
-            for reserva in todas_reservas:
-                vendedor_reserva = reserva[11] if reserva[11] is not None else 0
-                quant_pedida = float(reserva[1]) if reserva[1] is not None else 0.0
-                quant_entregue = float(reserva[2]) if reserva[2] is not None else 0.0
-                quant_falta = quant_pedida - quant_entregue
-                
-                # Filtro igual ao PHP: vendedor autorizado E quantidade em falta > 0.1
-                if ((vendedor_reserva == vendedor) or (vendedor in [1, 2, 99])) and (quant_falta > 0.1):
-                    reservas.append(reserva)
-            
-            cursor.close()
-            
-        except Exception as e:
-            flash(f'Erro ao consultar reservas: {str(e)}', 'error')
-            app.logger.error(f"Erro na consulta de reservas: {str(e)}")
-        finally:
-            conn.close()
-    
-    return render_template('reservas.html', 
-                         reservas=reservas,
-                         info_artigo=info_artigo,
-                         codigo=codigo, 
-                         lote=lote,
-                         fornecedor=fornecedor)
+    try:
+        # Get product info using ArtigosRepository
+        info_artigo = artigos_repo.get_product_info(codigo)
+        if info_artigo:
+            info_artigo = (codigo, info_artigo['descricao'])  # Convert to tuple format for template
+        
+        # Get reservations using ReservasRepository
+        vendedor = session.get('cd_vend', session.get('vendedor', 0))  # Use cd_vend if available, fallback to vendedor
+        reservas = reservas_repo.get_reservations(codigo, lote, fornecedor, vendedor)
+        
+        return render_template('reservas.html', 
+                             reservas=reservas,
+                             info_artigo=info_artigo,
+                             codigo=codigo, 
+                             lote=lote,
+                             fornecedor=fornecedor)
+                             
+    except Exception as e:
+        app.logger.error(f"Erro na consulta de reservas: {str(e)}")
+        flash(f'Erro ao consultar reservas: {str(e)}', 'error')
+        return render_template('reservas.html', 
+                             reservas=[],
+                             info_artigo=None,
+                             codigo=codigo, 
+                             lote=lote,
+                             fornecedor=fornecedor)
             
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
