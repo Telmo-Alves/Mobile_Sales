@@ -5,6 +5,7 @@ Dashboard and menu routes for Mobile Sales application
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 from ..utils import login_required
 from ..database.connection import get_db_connection
+from ..database import clientes_repo
 
 dashboard_bp = Blueprint('dashboard', __name__)
 
@@ -57,10 +58,12 @@ def clientes():
         try:
             cursor = conn.cursor()
             cursor.execute("""
-                SELECT FIRST 100 Cliente, Nome1, Telefone, Email, Localidade
-                FROM Clientes
-                WHERE Activo = 'S'
-                ORDER BY Nome1
+                SELECT FIRST 100 l.Cliente, l.Nome1, l.Telefone1, l.Email, l.Zona
+                FROM Locais_Entrega l
+                INNER JOIN Clientes c ON c.Cliente = l.Cliente
+                WHERE c.Situacao IN ('ACT', 'MANUT')
+                AND l.Local_ID = 'SEDE'
+                ORDER BY l.Nome1
             """)
             clientes_list = cursor.fetchall()
             cursor.close()
@@ -318,3 +321,37 @@ DEBUG = True
                 print(f"Erro nas configurações: {str(e)}")
     
     return render_template('configuracoes.html', config=FIREBIRD_CONFIG, warehouse_config=WAREHOUSE_CONFIG)
+
+@dashboard_bp.route('/mapabordocli')
+@login_required
+def mapabordocli():
+    """Mapa de Bordo de Clientes - Form para seleção de cliente"""
+    vendedor = session.get('vendedor', 0)
+    clientes_list = clientes_repo.get_clients_for_vendor(vendedor)
+    return render_template('mapabordocli.html', clientes=clientes_list)
+
+@dashboard_bp.route('/listamapabordocli', methods=['POST'])
+@login_required
+def listamapabordocli():
+    """Mapa de Bordo de Clientes - Exibir dados do cliente selecionado"""
+    cliente_id = request.form.get('cliente')
+    vendedor = session.get('vendedor', 0)
+    
+    if not cliente_id:
+        flash('Selecione um cliente', 'error')
+        return redirect(url_for('dashboard.mapabordocli'))
+    
+    # Get customer dashboard data
+    dashboard_data = clientes_repo.get_customer_dashboard_data(cliente_id, vendedor)
+    
+    if not dashboard_data:
+        flash('Não foi possível obter dados do cliente', 'error')
+        return redirect(url_for('dashboard.mapabordocli'))
+    
+    # Store in session for potential detail views
+    session['cliente'] = cliente_id
+    session['nome_cli'] = dashboard_data['nome']
+    
+    return render_template('listamapabordocli.html', 
+                         data=dashboard_data,
+                         vendedor=vendedor)

@@ -9,6 +9,8 @@ from .repositories import (
     ExistenciasRepository, 
     PedidosRepository, 
     ReservasRepository,
+    RequisicoesRepository,
+    LaboratorioRepository,
     ArtigosRepository,
     ClientesRepository
 )
@@ -18,6 +20,8 @@ auth_repo = AuthRepository()
 existencias_repo = ExistenciasRepository()
 pedidos_repo = PedidosRepository()
 reservas_repo = ReservasRepository()
+requisicoes_repo = RequisicoesRepository()
+laboratorio_repo = LaboratorioRepository()
 artigos_repo = ArtigosRepository()
 clientes_repo = ClientesRepository()
 
@@ -28,6 +32,8 @@ __all__ = [
     'existencias_repo', 
     'pedidos_repo',
     'reservas_repo',
+    'requisicoes_repo',
+    'laboratorio_repo',
     'artigos_repo',
     'clientes_repo'
 ]

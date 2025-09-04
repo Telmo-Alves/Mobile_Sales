@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>{% block title %}Mobile Sales - RISATEL{% endblock %}</title>
     
     <!-- Bootstrap 5 CSS -->
@@ -182,7 +185,7 @@
     {% if session.user %}
     <nav class="navbar navbar-expand-lg navbar-custom">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{{ url_for('dashboard.dashboard') }}">
+            <a class="navbar-brand" href="{{ url_for('dashboard.menu') }}">
                 <i class="bi bi-shop"></i> Mobile Sales
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -201,13 +204,8 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('pedidos.pedidos') }}">
-                            <i class="bi bi-cart-check"></i> Pedidos
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('dashboard.clientes') }}">
-                            <i class="bi bi-people"></i> Clientes
+                        <a class="nav-link" href="{{ url_for('dashboard.mapabordocli') }}">
+                            <i class="bi bi-person-lines-fill"></i> Mapa Bordo
                         </a>
                     </li>
                 </ul>

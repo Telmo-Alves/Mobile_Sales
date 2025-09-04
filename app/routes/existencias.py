@@ -4,7 +4,7 @@ Stock/inventory routes for Mobile Sales application
 
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, current_app
 from ..utils import login_required
-from ..database import existencias_repo
+from ..database import existencias_repo, laboratorio_repo
 from ..database.connection import get_db_connection
 
 existencias_bp = Blueprint('existencias', __name__)
@@ -409,3 +409,24 @@ Nível: {nivel_acesso}</pre>
             </details>
         </div>
         """, 500
+
+@existencias_bp.route('/laboratorio/<codigo>/<lote>')
+@login_required
+def laboratorio_observacoes(codigo, lote):
+    """Página de observações laboratoriais para um artigo/lote específico"""
+    
+    # Debug logging
+    current_app.logger.info(f"Laboratory page requested for codigo={codigo}, lote={lote}")
+    
+    # Get laboratory data
+    lab_data = laboratorio_repo.get_lab_results(codigo, lote)
+    
+    current_app.logger.info(f"Lab data returned: {lab_data is not None}, type: {type(lab_data)}")
+    if lab_data:
+        current_app.logger.info(f"Lab data keys: {list(lab_data.keys())}")
+        current_app.logger.info(f"Lab data ne_valor: {lab_data.get('ne_valor')}")
+    
+    return render_template('laboratorio.html',
+                         codigo=codigo,
+                         lote=lote,
+                         lab_data=lab_data)

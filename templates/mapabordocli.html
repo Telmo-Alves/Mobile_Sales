@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Mapa de Bordo de Clientes - Mobile Sales{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <h2>
+                <i class="bi bi-person-lines-fill"></i> Mapa de Bordo de Clientes
+            </h2>
+            <p class="text-muted">Selecione um cliente para consultar o seu mapa de bordo</p>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="row mb-3">
+        <div class="col">
+            <button type="button" class="btn btn-secondary" onclick="window.location.href='{{ url_for('dashboard.menu') }}'">
+                <i class="bi bi-arrow-left"></i> Menu
+            </button>
+        </div>
+    </div>
+
+    <!-- Client Selection Form -->
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-search"></i> Selecionar Cliente
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('dashboard.listamapabordocli') }}" method="POST">
+                        <div class="form-group mb-3">
+                            <label for="cliente" class="form-label">Cliente:</label>
+                            <select name="cliente" id="cliente" class="form-select" size="8" required>
+                                {% for cliente in clientes %}
+                                <option value="{{ cliente[0] }}">{{ cliente[1] }}</option>
+                                {% endfor %}
+                            </select>
+                            {% if not clientes %}
+                            <div class="text-muted mt-2">
+                                <i class="bi bi-info-circle"></i> Nenhum cliente encontrado para o seu perfil
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg" {% if not clientes %}disabled{% endif %}>
+                                <i class="bi bi-eye"></i> Consultar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-select[size] {
+    color: blue;
+    font-size: 14px;
+    background-color: white;
+}
+
+.form-select[size] option {
+    padding: 8px 12px;
+}
+
+.form-select[size] option:hover {
+    background-color: #f8f9fa;
+}
+
+.card {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+
+.card-header {
+    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    border-radius: 10px 10px 0 0;
+}
+</style>
+{% endblock %}

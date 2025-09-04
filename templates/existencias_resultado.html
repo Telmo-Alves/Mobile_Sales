@@ -1033,10 +1033,12 @@
         window.location.href = `/reservas/${codigo}/${lote}?${params.toString()}`;
     }
 
-    function abrirRequisicoes(codigo, lote) {
-        // TODO: Implementar consulta de requisições
-        alert(`Ver Requisições para:\nCódigo: ${codigo}\nLote: ${lote}`);
-        console.log('Requisições:', { codigo, lote });
+    function abrirRequisicoes(codigo, lote, fornecedor = '') {
+        // Redirecionar para a página de requisições
+        const params = new URLSearchParams({
+            fornecedor: fornecedor || ''
+        });
+        window.location.href = `/requisicoes/${codigo}/${lote}?${params.toString()}`;
     }
 
     function abrirExtrato(codigo, lote) {
@@ -1046,9 +1048,8 @@
     }
 
     function abrirObsLab(codigo, lote) {
-        // TODO: Implementar observações de laboratório
-        alert(`Observações Lab para:\nCódigo: ${codigo}\nLote: ${lote}`);
-        console.log('Obs Lab:', { codigo, lote });
+        // Redirecionar para a página de observações laboratoriais
+        window.location.href = `/laboratorio/${codigo}/${lote}`;
     }
 </script>
 {% endblock %}

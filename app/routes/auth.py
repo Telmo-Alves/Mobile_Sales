@@ -12,9 +12,9 @@ auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/')
 def index():
-    """Redireciona para login ou dashboard"""
+    """Redireciona para login ou menu"""
     if 'user' in session:
-        return redirect(url_for('dashboard.dashboard'))
+        return redirect(url_for('dashboard.menu'))
     return redirect(url_for('auth.login'))
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
@@ -85,7 +85,7 @@ def login():
                     next_url = session.pop('next_url', None)
                     if next_url:
                         return redirect(next_url)
-                    return redirect(url_for('dashboard.dashboard'))
+                    return redirect(url_for('dashboard.menu'))
                 else:
                     flash('Utilizador ou senha inválidos', 'danger')
                     print(f"DEBUG Login Falhou - Tentou: {utilizador_busca}")

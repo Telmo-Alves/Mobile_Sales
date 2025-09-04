@@ -25,6 +25,6 @@ def create_app():
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(existencias_bp)
     app.register_blueprint(pedidos_bp)
-    app.register_blueprint(api_bp)
+    app.register_blueprint(api_bp, url_prefix='/api')
     
     return app

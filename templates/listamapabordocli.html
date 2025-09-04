@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}Mapa de Bordo - {{ data.nome }} - Mobile Sales{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <h2>
+                <i class="bi bi-person-lines-fill"></i> Mapa de Bordo de Cliente
+            </h2>
+            <p class="text-muted">Informações financeiras detalhadas</p>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="row mb-3">
+        <div class="col-auto">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="window.location.href='{{ url_for('dashboard.menu') }}'">
+                <i class="bi bi-house"></i> Menu
+            </button>
+        </div>
+        <div class="col-auto">
+            <button type="button" class="btn btn-outline-primary btn-sm" onclick="window.location.href='{{ url_for('dashboard.mapabordocli') }}'">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </button>
+        </div>
+        <!-- Only show Obs button for high-level users -->
+        {% if session.get('vendedor') in [1, 2, 20, 88, 99] %}
+        <div class="col-auto">
+            <button type="button" class="btn btn-info btn-sm" onclick="alert('Funcionalidade de observações em desenvolvimento')">
+                <i class="bi bi-chat-square-text"></i> Obs
+            </button>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Client Name -->
+    <div class="row mb-3">
+        <div class="col">
+            <div class="alert alert-info">
+                <h4 class="mb-0">
+                    <i class="bi bi-person-fill"></i> 
+                    <strong>{{ data.nome[:30] }}</strong>
+                </h4>
+            </div>
+        </div>
+    </div>
+
+    <!-- Plafond Information -->
+    <div class="row mb-3">
+        <div class="col">
+            <div class="card">
+                <div class="card-body">
+                    <h6>
+                        <i class="bi bi-credit-card"></i> Plafond: 
+                        <span class="fw-bold text-primary">{{ "{:,.2f}".format(data.plafond_total).replace(",", " ").replace(".", ",") }}</span>
+                        {% if session.get('vendedor') in [1, 2, 20, 88, 99] %}
+                        -- {{ "{:,.2f}".format(data.plafond_seg_total).replace(",", " ").replace(".", ",") }}
+                        {% endif %}
+                    </h6>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Financial Details Table -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <table class="table table-bordered table-sm">
+                <tbody>
+                    <tr>
+                        <td width="40%" class="fw-bold">Letras</td>
+                        <td width="60%" class="text-end">
+                            <a href="#" class="text-decoration-none" onclick="alert('Funcionalidade em desenvolvimento')">
+                                {{ "{:,.2f}".format(data.val_letras).replace(",", " ").replace(".", ",") }}
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">Débitos</td>
+                        <td class="text-end">
+                            <a href="#" class="text-decoration-none" onclick="alert('Funcionalidade em desenvolvimento')">
+                                {{ "{:,.2f}".format(data.val_cc).replace(",", " ").replace(".", ",") }}
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">Factoring</td>
+                        <td class="text-end">
+                            <a href="#" class="text-decoration-none" onclick="alert('Funcionalidade em desenvolvimento')">
+                                {{ "{:,.2f}".format(data.val_factoring).replace(",", " ").replace(".", ",") }}
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">Encomendas</td>
+                        <td class="text-end">
+                            <a href="#" class="text-decoration-none" onclick="alert('Funcionalidade em desenvolvimento')">
+                                {{ "{:,.2f}".format(data.val_encom).replace(",", " ").replace(".", ",") }}
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">Pré-Datados</td>
+                        <td class="text-end">
+                            <a href="#" class="text-decoration-none" onclick="alert('Funcionalidade em desenvolvimento')">
+                                {{ "{:,.2f}".format(data.val_predata).replace(",", " ").replace(".", ",") }}
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Total -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <table class="table table-borderless">
+                <tbody>
+                    <tr>
+                        <td width="40%" class="fw-bold {% if data.over_limit %}text-danger{% else %}text-primary{% endif %}">
+                            Totais
+                        </td>
+                        <td width="60%" class="text-end fw-bold {% if data.over_limit %}text-danger{% else %}text-primary{% endif %}">
+                            {{ "{:,.2f}".format(data.val_total).replace(",", " ").replace(".", ",") }}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Sales Information -->
+    <div class="row">
+        <div class="col-md-6">
+            <table class="table table-bordered table-sm">
+                <tbody>
+                    <tr>
+                        <td width="40%" class="fw-bold">Ano Anterior</td>
+                        <td width="60%" class="text-end">
+                            {{ "{:,.2f}".format(data.vendas_ant).replace(",", " ").replace(".", ",") }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">Vendas Actuais</td>
+                        <td class="text-end">
+                            {{ "{:,.2f}".format(data.vendas_actual).replace(",", " ").replace(".", ",") }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">Obj Vendas</td>
+                        <td class="text-end">
+                            {{ "{:,.2f}".format(data.obj_vendas).replace(",", " ").replace(".", ",") }}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+.table-sm td {
+    font-size: 12px;
+    font-family: Tahoma, Arial, sans-serif;
+    padding: 8px;
+}
+
+.alert-info {
+    background: linear-gradient(45deg, #d1ecf1, #bee5eb);
+    border: 1px solid #b6d4d9;
+}
+
+.card {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.text-danger {
+    color: #dc3545 !important;
+}
+
+.text-primary {
+    color: #0d6efd !important;
+}
+
+a.text-decoration-none:hover {
+    text-decoration: underline !important;
+}
+
+.table-bordered td {
+    border: 1px solid #dee2e6;
+}
+
+.table-borderless td {
+    border: none;
+    font-size: 14px;
+}
+</style>
+{% endblock %}

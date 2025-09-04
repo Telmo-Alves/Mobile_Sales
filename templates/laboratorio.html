@@ -1,0 +1,1312 @@
+{% extends "base.html" %}
+
+{% block title %}Observações Laboratório - {{ codigo }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .laboratorio-container {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-top: 20px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+    }
+
+    .laboratorio-header {
+        background: linear-gradient(135deg, #009688 0%, #00695c 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 25px;
+        text-align: center;
+    }
+
+    .results-form {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #dee2e6;
+        padding: 25px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 25px;
+    }
+
+    .results-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .results-table th,
+    .results-table td {
+        padding: 12px;
+        text-align: left;
+        border: 1px solid #ddd;
+        font-size: 14px;
+    }
+
+    .results-table th {
+        background: linear-gradient(135deg, #009688 0%, #00695c 100%);
+        color: white;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .results-table tr:nth-child(even) {
+        background-color: #f8f9fa;
+    }
+
+    .results-table tr:hover {
+        background-color: #e8f5e8;
+    }
+
+    .label-cell {
+        font-weight: bold;
+        background-color: #f0f8ff !important;
+        color: #333;
+        width: 120px;
+    }
+
+    .value-cell {
+        font-weight: bold;
+        text-align: right;
+        color: #2c5aa0;
+        width: 80px;
+    }
+
+    .cv-label-cell {
+        font-size: 12px;
+        color: #666;
+        width: 50px;
+        text-align: center;
+    }
+
+    .cv-value-cell {
+        font-size: 12px;
+        text-align: right;
+        color: #666;
+        width: 70px;
+    }
+
+    .empty-cell {
+        background: transparent !important;
+        border: none !important;
+    }
+
+    .info-artigo {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+        border-left: 4px solid #009688;
+    }
+
+    .info-artigo h6 {
+        color: #495057;
+        margin: 0 0 5px 0;
+    }
+
+    .info-artigo p {
+        color: #6c757d;
+        margin: 0;
+        font-size: 14px;
+    }
+
+    .btn-voltar {
+        background: #6c757d;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s;
+        display: inline-block;
+        margin-bottom: 20px;
+    }
+
+    .btn-voltar:hover {
+        background: #545b62;
+        transform: translateY(-1px);
+        color: white;
+        text-decoration: none;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 25px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 10px;
+    }
+
+    .btn-action {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 160px;
+        justify-content: center;
+    }
+
+
+    .btn-share {
+        background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+        color: white;
+    }
+
+    .btn-share:hover {
+        background: linear-gradient(135deg, #128c7e 0%, #075e54 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(37,211,102,0.3);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-pdf {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+
+    .btn-pdf:hover {
+        background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(40,167,69,0.3);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-email {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        color: white;
+    }
+
+    .btn-email:hover {
+        background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,123,255,0.3);
+        color: white;
+        text-decoration: none;
+    }
+
+    .no-results {
+        text-align: center;
+        padding: 40px;
+        color: #6c757d;
+    }
+
+    .no-results i {
+        font-size: 48px;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    .loading-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.7);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .loading-content {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    @media screen and (max-width: 768px) {
+        .laboratorio-container {
+            margin: 10px;
+            padding: 15px;
+        }
+        
+        .results-table {
+            font-size: 12px;
+        }
+        
+        .results-table th,
+        .results-table td {
+            padding: 8px;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .btn-action {
+            min-width: auto;
+            width: 100%;
+        }
+        
+        .label-cell {
+            width: auto;
+        }
+        
+        .value-cell {
+            width: auto;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="laboratorio-container">
+        <div class="laboratorio-header">
+            <h4><i class="bi bi-flask"></i> Observações de Laboratório</h4>
+            <small>Resultados de análises laboratoriais</small>
+        </div>
+
+        <a href="javascript:history.back()" class="btn-voltar">
+            <i class="bi bi-arrow-left"></i> Voltar
+        </a>
+
+        {% if info_artigo %}
+        <div class="info-artigo">
+            <h6>Produto: {{ codigo }}</h6>
+            <p>{{ info_artigo[1] }}</p>
+            <p><strong>Lote:</strong> {{ lote }}</p>
+        </div>
+        {% endif %}
+
+        {% if lab_data and lab_data.ne_valor %}
+        <div class="results-form">
+            <h5 class="text-center mb-4">
+                <i class="bi bi-clipboard-data"></i> Resultados Laboratoriais
+            </h5>
+            
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th colspan="4">Parâmetros de Qualidade</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Ne Value -->
+                    <tr>
+                        <td class="label-cell">Ne</td>
+                        <td class="value-cell">{{ lab_data.ne_valor if lab_data.ne_valor is not none else '-' }}</td>
+                        <td class="cv-label-cell">Cv %</td>
+                        <td class="cv-value-cell">{{ lab_data.ne_cv if lab_data.ne_cv is not none else '-' }}</td>
+                    </tr>
+                    
+                    <!-- CVM -->
+                    <tr>
+                        <td class="label-cell">Cvm %</td>
+                        <td class="value-cell">{{ lab_data.uster_cvm if lab_data.uster_cvm is not none else '-' }}</td>
+                        <td class="empty-cell"></td>
+                        <td class="empty-cell"></td>
+                    </tr>
+                    
+                    <!-- Pontos Finos -->
+                    <tr>
+                        <td class="label-cell">PF -50%</td>
+                        <td class="value-cell">{{ lab_data.uster_pnt_finos if lab_data.uster_pnt_finos is not none else '-' }}</td>
+                        <td class="empty-cell"></td>
+                        <td class="empty-cell"></td>
+                    </tr>
+                    
+                    <!-- Pontos Grossos -->
+                    <tr>
+                        <td class="label-cell">PG +50%</td>
+                        <td class="value-cell">{{ lab_data.uster_pnt_grossos if lab_data.uster_pnt_grossos is not none else '-' }}</td>
+                        <td class="empty-cell"></td>
+                        <td class="empty-cell"></td>
+                    </tr>
+                    
+                    <!-- Neps - depends on process type -->
+                    {% if process_type == 'O' %}
+                    <tr>
+                        <td class="label-cell">N +280%</td>
+                        <td class="value-cell">{{ lab_data.uster_neps_3 if lab_data.uster_neps_3 is not none else '-' }}</td>
+                        <td class="empty-cell"></td>
+                        <td class="empty-cell"></td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td class="label-cell">N +200%</td>
+                        <td class="value-cell">{{ lab_data.uster_neps_2 if lab_data.uster_neps_2 is not none else '-' }}</td>
+                        <td class="empty-cell"></td>
+                        <td class="empty-cell"></td>
+                    </tr>
+                    {% endif %}
+                    
+                    <!-- RKM -->
+                    <tr>
+                        <td class="label-cell">Rkm</td>
+                        <td class="value-cell">{{ lab_data.rkm_valor if lab_data.rkm_valor is not none else '-' }}</td>
+                        <td class="cv-label-cell">Cv %</td>
+                        <td class="cv-value-cell">{{ lab_data.rkm_cv if lab_data.rkm_cv is not none else '-' }}</td>
+                    </tr>
+                    
+                    <!-- Torsion - depends on number of threads -->
+                    {% if lab_data.nr_fios == 1 %}
+                    <tr>
+                        <td class="label-cell">Torção</td>
+                        <td class="value-cell">{{ lab_data.torcao_tpi_valor if lab_data.torcao_tpi_valor is not none else '-' }}</td>
+                        <td class="cv-label-cell">{{ lab_data.tipo_torcao or '' }}</td>
+                        <td class="empty-cell"></td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td class="label-cell">Retorção</td>
+                        <td class="value-cell">{{ lab_data.torcao_tpi_valor_s if lab_data.torcao_tpi_valor_s is not none else '-' }}</td>
+                        <td class="cv-label-cell">{{ lab_data.tipo_torcao_s or '' }}</td>
+                        <td class="empty-cell"></td>
+                    </tr>
+                    {% endif %}
+                    
+                    <!-- Pilosidade -->
+                    <tr>
+                        <td class="label-cell">Pilosidade</td>
+                        <td class="value-cell">{{ lab_data.uster_pilosidade if lab_data.uster_pilosidade is not none else '-' }}</td>
+                        <td class="cv-label-cell">Cv %</td>
+                        <td class="cv-value-cell">{{ lab_data.uster_pilosidade_cv if lab_data.uster_pilosidade_cv is not none else '-' }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="action-buttons">
+                <button class="btn-action btn-pdf" 
+                        onclick="downloadPdf()"
+                        title="Descarregar PDF dos resultados">
+                    <i class="bi bi-download"></i> Descarregar PDF
+                </button>
+                
+                <button class="btn-action btn-share" 
+                        onclick="shareResultsNative()"
+                        title="Partilhar resultados">
+                    <i class="bi bi-share"></i> Partilhar
+                </button>
+                
+                <button class="btn-action btn-share" 
+                        onclick="shareDirectWhatsApp()"
+                        title="Partilhar direto no WhatsApp"
+                        style="background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);">
+                    <i class="bi bi-whatsapp"></i> WhatsApp Direto
+                </button>
+            </div>
+        </div>
+        
+        {% else %}
+        <div class="no-results">
+            <i class="bi bi-flask-fill"></i>
+            <h5>Nenhum resultado laboratorial encontrado</h5>
+            <p>Não existem análises laboratoriais para este produto e lote.</p>
+            {% if error %}
+            <div class="alert alert-danger mt-3">
+                <i class="bi bi-exclamation-triangle"></i> {{ error }}
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay">
+    <div class="loading-content">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">A carregar...</span>
+        </div>
+        <p class="mt-3">A processar solicitação...</p>
+    </div>
+</div>
+
+<script>
+    // Simple PDF download function
+    async function downloadPdf() {
+        try {
+            showLoadingOverlay(true);
+            
+            const response = await fetch(`/api/laboratorio/{{ codigo }}/{{ lote }}/pdf`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = `Resultados_Laboratoriais_{{ codigo }}_{{ lote }}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                showToast('PDF descarregado com sucesso!', 'success');
+            } else {
+                throw new Error('Erro ao gerar PDF');
+            }
+        } catch (error) {
+            console.error('Error downloading PDF:', error);
+            showToast('Erro ao descarregar PDF: ' + error.message, 'error');
+        } finally {
+            showLoadingOverlay(false);
+        }
+    }
+    
+    // Universal Share function - works on all devices
+    async function shareResultsNative() {
+        try {
+            showLoadingOverlay(true);
+            
+            console.log('Getting PDF for sharing...');
+            
+            // Get PDF as blob first
+            const response = await fetch(`/laboratorio/{{ codigo }}/{{ lote }}/email`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: 'download@temp.com'
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Erro ao gerar PDF');
+            }
+            
+            const blob = await response.blob();
+            console.log('PDF blob created:', blob.size, 'bytes');
+            
+            // Always download the PDF first
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = `Resultados_Laboratoriais_{{ codigo }}_{{ lote }}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            showLoadingOverlay(false);
+            
+            // Show share options modal
+            showShareOptionsModal();
+            
+        } catch (error) {
+            console.error('Error preparing PDF:', error);
+            showToast('Erro ao preparar PDF: ' + error.message, 'error');
+        } finally {
+            showLoadingOverlay(false);
+        }
+    }
+    
+    function showShareOptionsModal() {
+        const modal = document.createElement('div');
+        modal.className = 'modal fade show';
+        modal.style.display = 'block';
+        modal.innerHTML = `
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title">
+                            <i class="bi bi-share"></i> Partilhar Resultados Laboratoriais
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" onclick="this.closest('.modal').remove()"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-success mb-3">
+                            <i class="bi bi-check-circle"></i>
+                            <strong>PDF descarregado!</strong><br>
+                            <small>Ficheiro: Resultados_Laboratoriais_{{ codigo }}_{{ lote }}.pdf</small>
+                        </div>
+                        
+                        <p class="mb-3"><strong>Escolha como partilhar:</strong></p>
+                        
+                        <div class="d-grid gap-2">
+                            <button onclick="shareWhatsApp()" class="btn btn-success btn-lg">
+                                <i class="bi bi-whatsapp"></i> WhatsApp
+                                <small class="d-block">Anexar PDF descarregado</small>
+                            </button>
+                            
+                            <button onclick="shareEmail()" class="btn btn-primary btn-lg">
+                                <i class="bi bi-envelope"></i> Email
+                                <small class="d-block">Criar email com template</small>
+                            </button>
+                            
+                            <button onclick="shareTelegram()" class="btn btn-info btn-lg">
+                                <i class="bi bi-telegram"></i> Telegram
+                                <small class="d-block">Anexar PDF descarregado</small>
+                            </button>
+                            
+                            <button onclick="shareGeneric()" class="btn btn-secondary btn-lg">
+                                <i class="bi bi-share"></i> Outras Apps
+                                <small class="d-block">Abrir com outras aplicações</small>
+                            </button>
+                        </div>
+                        
+                        <div class="alert alert-info mt-3">
+                            <small>
+                                <i class="bi bi-info-circle"></i>
+                                <strong>Nota:</strong> O PDF foi descarregado para a pasta Downloads. 
+                                Anexe manualmente na aplicação escolhida.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Add backdrop
+        const backdrop = document.createElement('div');
+        backdrop.className = 'modal-backdrop fade show';
+        backdrop.onclick = () => {
+            modal.remove();
+            backdrop.remove();
+        };
+        document.body.appendChild(backdrop);
+    }
+    
+    async function shareWhatsApp() {
+        try {
+            // First get the PDF blob again
+            const response = await fetch(`/laboratorio/{{ codigo }}/{{ lote }}/email`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: 'download@temp.com'
+                })
+            });
+            
+            const blob = await response.blob();
+            const file = new File([blob], `Resultados_Laboratoriais_{{ codigo }}_{{ lote }}.pdf`, { 
+                type: 'application/pdf' 
+            });
+            
+            const text = `Resultados laboratoriais - {{ codigo }} (Lote: {{ lote }})`;
+            
+            // Try native sharing first (works on newer Android/iOS)
+            if (navigator.share && navigator.canShare) {
+                try {
+                    // Try with files first
+                    const shareData = { title: 'Resultados Laboratoriais', text: text, files: [file] };
+                    if (navigator.canShare(shareData)) {
+                        await navigator.share(shareData);
+                        closeModal();
+                        showToast('Partilha realizada com sucesso!', 'success');
+                        return;
+                    }
+                } catch (e) {
+                    console.log('File sharing failed, trying intent approach...');
+                }
+            }
+            
+            // Android Intent approach - create a shareable URL for the PDF
+            const pdfUrl = URL.createObjectURL(blob);
+            
+            // Try Android Intent for sharing files
+            const intentUrl = `intent://send#Intent;` +
+                `action=android.intent.action.SEND;` +
+                `type=application/pdf;` +
+                `S.android.intent.extra.TEXT=${encodeURIComponent(text)};` +
+                `S.android.intent.extra.STREAM=${encodeURIComponent(pdfUrl)};` +
+                `package=com.whatsapp;` +
+                `end;`;
+            
+            // Try the intent URL
+            try {
+                window.location.href = intentUrl;
+                closeModal();
+                showToast('A abrir WhatsApp com PDF...', 'success');
+                return;
+            } catch (e) {
+                console.log('Intent failed, trying alternative approaches...');
+            }
+            
+            // Alternative: Create data URL and try sharing
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const dataUrl = e.target.result;
+                
+                // Try sharing with data URL
+                if (navigator.share) {
+                    const shareData = {
+                        title: 'Resultados Laboratoriais',
+                        text: text + '\n\n' + dataUrl
+                    };
+                    
+                    navigator.share(shareData).then(() => {
+                        closeModal();
+                        showToast('Dados partilhados! Escolha WhatsApp.', 'info');
+                    }).catch(() => {
+                        fallbackWhatsApp(text);
+                    });
+                } else {
+                    fallbackWhatsApp(text);
+                }
+            };
+            
+            reader.readAsDataURL(blob);
+            
+        } catch (error) {
+            console.error('Error in shareWhatsApp:', error);
+            fallbackWhatsApp(`Resultados laboratoriais - {{ codigo }} (Lote: {{ lote }})`);
+        }
+    }
+    
+    function fallbackWhatsApp(text) {
+        // Fallback to traditional approach
+        const enhancedText = text + `
+        
+📄 PDF foi descarregado: Resultados_Laboratoriais_{{ codigo }}_{{ lote }}.pdf
+📁 Localização: Pasta Downloads
+📎 Anexe manualmente no WhatsApp`;
+        
+        const whatsappApp = `whatsapp://send?text=${encodeURIComponent(enhancedText)}`;
+        const whatsappWeb = `https://wa.me/?text=${encodeURIComponent(enhancedText)}`;
+        
+        // Try app first
+        window.location.href = whatsappApp;
+        
+        // Fallback to web
+        setTimeout(() => {
+            window.open(whatsappWeb, '_blank');
+        }, 1500);
+        
+        closeModal();
+        showToast('WhatsApp aberto. PDF na pasta Downloads para anexar.', 'info');
+    }
+    
+    function shareEmail() {
+        const subject = 'Resultados Laboratoriais - {{ codigo }} (Lote: {{ lote }})';
+        const body = `Bom dia/Boa tarde,
+
+Segue em anexo os resultados laboratoriais para:
+
+Produto: {{ codigo }}
+{% if info_artigo %}Descrição: {{ info_artigo[1] }}{% endif %}
+Lote: {{ lote }}
+
+NOTA: Anexe o ficheiro PDF descarregado (Resultados_Laboratoriais_{{ codigo }}_{{ lote }}.pdf)
+
+Cumprimentos,`;
+
+        const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        window.open(mailtoLink);
+        
+        closeModal();
+        showToast('Cliente email aberto. Anexe o PDF descarregado.', 'info');
+    }
+    
+    function shareTelegram() {
+        const text = `Resultados laboratoriais - {{ codigo }} (Lote: {{ lote }})
+        
+📄 Ver anexo: Resultados_Laboratoriais_{{ codigo }}_{{ lote }}.pdf`;
+        
+        const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent('')}&text=${encodeURIComponent(text)}`;
+        window.open(telegramUrl, '_blank');
+        
+        closeModal();
+        showToast('Telegram aberto. Anexe o PDF descarregado.', 'info');
+    }
+    
+    function shareGeneric() {
+        closeModal();
+        showToast('Abra a aplicação desejada e anexe o PDF da pasta Downloads.', 'info');
+    }
+    
+    function closeModal() {
+        document.querySelector('.modal')?.remove();
+        document.querySelector('.modal-backdrop')?.remove();
+    }
+    
+    // Advanced Direct WhatsApp sharing with multiple fallback strategies
+    async function shareDirectWhatsApp() {
+        try {
+            showLoadingOverlay(true);
+            console.log('Starting advanced WhatsApp sharing...');
+            
+            // Get PDF blob
+            const response = await fetch(`/laboratorio/{{ codigo }}/{{ lote }}/email`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: 'download@temp.com'
+                })
+            });
+            
+            const blob = await response.blob();
+            const file = new File([blob], `Resultados_Laboratoriais_{{ codigo }}_{{ lote }}.pdf`, { 
+                type: 'application/pdf' 
+            });
+            
+            console.log('PDF blob created, size:', blob.size);
+            
+            // Strategy 1: Web Share API 2.0 with files (Android Chrome 89+, Samsung Internet)
+            if (navigator.share && navigator.canShare) {
+                try {
+                    const shareData = {
+                        title: 'Resultados Laboratoriais',
+                        text: `Resultados laboratoriais - {{ codigo }} (Lote: {{ lote }})`,
+                        files: [file]
+                    };
+                    
+                    // Check if we can share files
+                    if (navigator.canShare(shareData)) {
+                        console.log('Attempting Web Share API 2.0 with files...');
+                        await navigator.share(shareData);
+                        showToast('PDF partilhado! Selecione WhatsApp.', 'success');
+                        return;
+                    }
+                } catch (error) {
+                    if (error.name === 'AbortError') {
+                        showLoadingOverlay(false);
+                        return; // User cancelled
+                    }
+                    console.log('Web Share with files failed:', error.message);
+                }
+            }
+            
+            // Strategy 2: Android Intent with actual file content (via data URI)
+            if (/Android/i.test(navigator.userAgent)) {
+                try {
+                    console.log('Attempting Android Intent approach...');
+                    
+                    // Create data URI for the PDF
+                    const reader = new FileReader();
+                    const dataUriPromise = new Promise((resolve) => {
+                        reader.onload = () => resolve(reader.result);
+                        reader.readAsDataURL(blob);
+                    });
+                    
+                    const dataUri = await dataUriPromise;
+                    
+                    // Create Android Intent URL for sending files
+                    const intentUrl = `intent:#Intent;` +
+                        `action=android.intent.action.SEND;` +
+                        `type=application/pdf;` +
+                        `S.android.intent.extra.TEXT=Resultados laboratoriais - {{ codigo }} (Lote: {{ lote }});` +
+                        `S.android.intent.extra.STREAM=${dataUri};` +
+                        `package=com.whatsapp;` +
+                        `B.android.intent.extra.STREAM=${encodeURIComponent(dataUri)};` +
+                        `end`;
+                    
+                    console.log('Trying Android Intent URL...');
+                    window.location.href = intentUrl;
+                    
+                    setTimeout(() => {
+                        showLoadingOverlay(false);
+                        showToast('WhatsApp aberto! O PDF deve aparecer automaticamente.', 'success');
+                    }, 1500);
+                    return;
+                    
+                } catch (error) {
+                    console.log('Android Intent approach failed:', error.message);
+                }
+            }
+            
+            // Strategy 3: Create temporary downloadable file and use custom file:// protocol
+            try {
+                console.log('Attempting temporary file approach...');
+                
+                const blobUrl = URL.createObjectURL(blob);
+                
+                // Download file first
+                const downloadLink = document.createElement('a');
+                downloadLink.href = blobUrl;
+                downloadLink.download = `Resultados_Laboratoriais_{{ codigo }}_{{ lote }}.pdf`;
+                downloadLink.style.display = 'none';
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+                
+                // Wait a moment for download to start
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Try to trigger a share intent with the file
+                if (navigator.share) {
+                    try {
+                        await navigator.share({
+                            title: 'Resultados Laboratoriais',
+                            text: `Resultados laboratoriais - {{ codigo }} (Lote: {{ lote }})`,
+                            url: blobUrl
+                        });
+                        
+                        showToast('Escolha WhatsApp no menu de partilha!', 'success');
+                        
+                        // Clean up after 1 minute
+                        setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+                        return;
+                        
+                    } catch (shareError) {
+                        console.log('URL sharing failed:', shareError.message);
+                    }
+                }
+                
+                // Clean up
+                URL.revokeObjectURL(blobUrl);
+                
+            } catch (error) {
+                console.log('Temporary file approach failed:', error.message);
+            }
+            
+            // Strategy 4: File System Access API for Chrome (allows direct file creation)
+            if ('showDirectoryPicker' in window || 'getDirectory' in navigator.storage) {
+                try {
+                    console.log('Attempting File System Access API...');
+                    
+                    // Try to get access to Downloads directory
+                    const directoryHandle = await window.showDirectoryPicker();
+                    const fileHandle = await directoryHandle.getFileHandle(
+                        `Resultados_Laboratoriais_{{ codigo }}_{{ lote }}.pdf`, 
+                        { create: true }
+                    );
+                    
+                    const writable = await fileHandle.createWritable();
+                    await writable.write(blob);
+                    await writable.close();
+                    
+                    // Now try to share the actual file
+                    if (navigator.share) {
+                        const actualFile = await fileHandle.getFile();
+                        await navigator.share({
+                            files: [actualFile],
+                            title: 'Resultados Laboratoriais',
+                            text: `Resultados laboratoriais - {{ codigo }} (Lote: {{ lote }})`
+                        });
+                        
+                        showToast('PDF criado e partilhado!', 'success');
+                        return;
+                    }
+                    
+                    showToast('PDF criado! Partilhe através do gestor de ficheiros.', 'info');
+                    return;
+                    
+                } catch (error) {
+                    console.log('File System Access API failed:', error.message);
+                }
+            }
+            
+            // Strategy 5: Create a shareable URL using service worker (if available)
+            if ('serviceWorker' in navigator) {
+                try {
+                    console.log('Attempting Service Worker approach...');
+                    
+                    // Register a temporary service worker to serve the file
+                    const registration = await navigator.serviceWorker.getRegistration();
+                    
+                    if (registration) {
+                        // Create a unique URL for this file
+                        const fileId = Date.now().toString();
+                        const shareableUrl = `${window.location.origin}/temp-pdf/${fileId}`;
+                        
+                        // Store the blob in cache for serving
+                        if ('caches' in window) {
+                            const cache = await caches.open('pdf-temp');
+                            const response = new Response(blob, {
+                                headers: { 'Content-Type': 'application/pdf' }
+                            });
+                            await cache.put(shareableUrl, response);
+                            
+                            // Try sharing the URL
+                            if (navigator.share) {
+                                await navigator.share({
+                                    title: 'Resultados Laboratoriais',
+                                    text: `Resultados laboratoriais - {{ codigo }} (Lote: {{ lote }})`,
+                                    url: shareableUrl
+                                });
+                                
+                                showToast('PDF partilhado! Escolha WhatsApp.', 'success');
+                                
+                                // Clean up after 10 minutes
+                                setTimeout(async () => {
+                                    try {
+                                        const cache = await caches.open('pdf-temp');
+                                        await cache.delete(shareableUrl);
+                                    } catch (e) {}
+                                }, 600000);
+                                
+                                return;
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.log('Service Worker approach failed:', error.message);
+                }
+            }
+            
+            // Final fallback: Show enhanced instructions with one-tap WhatsApp
+            showLoadingOverlay(false);
+            showEnhancedWhatsAppInstructions(blob);
+            
+        } catch (error) {
+            console.error('Error in shareDirectWhatsApp:', error);
+            showToast('Erro: ' + error.message, 'error');
+        } finally {
+            showLoadingOverlay(false);
+        }
+    }
+    
+    // Enhanced instructions with automatic download and WhatsApp opening
+    function showEnhancedWhatsAppInstructions(blob) {
+        // First, automatically download the PDF
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Resultados_Laboratoriais_{{ codigo }}_{{ lote }}.pdf`;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        
+        const modal = document.createElement('div');
+        modal.className = 'modal fade show';
+        modal.style.display = 'block';
+        modal.innerHTML = `
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title">
+                            <i class="bi bi-whatsapp"></i> PDF Pronto para WhatsApp
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" onclick="this.closest('.modal').remove(); this.closest('.modal-backdrop')?.remove();"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-success text-center">
+                            <i class="bi bi-check-circle" style="font-size: 2.5rem;"></i>
+                            <h5 class="mt-3 mb-2">Descarregamento Automático!</h5>
+                            <p class="mb-1"><strong>Resultados_Laboratoriais_{{ codigo }}_{{ lote }}.pdf</strong></p>
+                            <small class="text-muted">Guardado na pasta Downloads</small>
+                        </div>
+                        
+                        <div class="text-center mb-4">
+                            <button onclick="openWhatsAppWithPDF()" class="btn btn-success btn-lg px-4 py-3">
+                                <i class="bi bi-whatsapp" style="font-size: 1.5rem;"></i>
+                                <span class="ms-2"><strong>Abrir WhatsApp Agora</strong></span>
+                            </button>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <div class="row align-items-center">
+                                <div class="col-2 text-center">
+                                    <i class="bi bi-info-circle text-info" style="font-size: 2rem;"></i>
+                                </div>
+                                <div class="col-10">
+                                    <strong>Como anexar:</strong><br>
+                                    1. Toque no ícone 📎 (anexar)<br>
+                                    2. Escolha "Documento"<br>
+                                    3. Selecione o PDF descarregado
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-6">
+                                <button onclick="copyPDFName()" class="btn btn-outline-secondary btn-sm w-100">
+                                    <i class="bi bi-clipboard"></i> Copiar nome do ficheiro
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <button onclick="openFileManager()" class="btn btn-outline-primary btn-sm w-100">
+                                    <i class="bi bi-folder"></i> Abrir pasta Downloads
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        const backdrop = document.createElement('div');
+        backdrop.className = 'modal-backdrop fade show';
+        backdrop.onclick = () => {
+            modal.remove();
+            backdrop.remove();
+            URL.revokeObjectURL(url);
+        };
+        document.body.appendChild(backdrop);
+        
+        // Clean up blob URL after 5 minutes
+        setTimeout(() => URL.revokeObjectURL(url), 300000);
+    }
+    
+    // Open WhatsApp with optimized approach for PDF sharing
+    function openWhatsAppWithPDF() {
+        const text = `Resultados laboratoriais - {{ codigo }} (Lote: {{ lote }})
+
+📄 Ver anexo: Resultados_Laboratoriais_{{ codigo }}_{{ lote }}.pdf
+📁 Pasta: Downloads`;
+
+        // Multiple approaches to open WhatsApp
+        const whatsappUrls = [
+            `whatsapp://send?text=${encodeURIComponent(text)}`,
+            `https://wa.me/?text=${encodeURIComponent(text)}`,
+            `https://web.whatsapp.com/send?text=${encodeURIComponent(text)}`
+        ];
+        
+        // Try native app first
+        window.location.href = whatsappUrls[0];
+        
+        // Fallback to web version after 2 seconds if app doesn't open
+        setTimeout(() => {
+            window.open(whatsappUrls[1], '_blank');
+        }, 2000);
+        
+        // Close modal
+        document.querySelector('.modal')?.remove();
+        document.querySelector('.modal-backdrop')?.remove();
+        
+        showToast('WhatsApp aberto! Anexe o PDF descarregado.', 'success');
+    }
+    
+    // Copy PDF filename to clipboard
+    async function copyPDFName() {
+        const filename = `Resultados_Laboratoriais_{{ codigo }}_{{ lote }}.pdf`;
+        
+        try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(filename);
+                showToast('Nome do ficheiro copiado!', 'info');
+            } else {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = filename;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-999999px';
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showToast('Nome do ficheiro copiado!', 'info');
+            }
+        } catch (error) {
+            console.log('Copy failed:', error);
+            showToast('Não foi possível copiar. Nome: Resultados_Laboratoriais_{{ codigo }}_{{ lote }}.pdf', 'info');
+        }
+    }
+    
+    // Open file manager to Downloads folder
+    function openFileManager() {
+        // Try different approaches to open file manager
+        const approaches = [
+            'file:///storage/emulated/0/Download/',
+            'file:///sdcard/Download/',
+            'content://com.android.providers.downloads.documents/root/downloads',
+        ];
+        
+        // Try Android file manager intent
+        if (/Android/i.test(navigator.userAgent)) {
+            const intent = 'intent:#Intent;action=android.intent.action.VIEW;type=resource/folder;end';
+            try {
+                window.location.href = intent;
+                showToast('Abrindo gestor de ficheiros...', 'info');
+                return;
+            } catch (e) {
+                console.log('File manager intent failed');
+            }
+        }
+        
+        // Fallback - just show helpful message
+        showToast('Abra o gestor de ficheiros e vá para Downloads', 'info');
+    }
+
+    function showWhatsAppInstructions() {
+        const modal = document.createElement('div');
+        modal.className = 'modal fade show';
+        modal.style.display = 'block';
+        modal.innerHTML = `
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title">
+                            <i class="bi bi-whatsapp"></i> Como Partilhar no WhatsApp
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" onclick="this.closest('.modal').remove()"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-success text-center">
+                            <i class="bi bi-check-circle" style="font-size: 2rem;"></i>
+                            <h6 class="mt-2">PDF Descarregado!</h6>
+                            <small>Resultados_Laboratoriais_{{ codigo }}_{{ lote }}.pdf</small>
+                        </div>
+                        
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <div class="p-3">
+                                    <i class="bi bi-whatsapp text-success" style="font-size: 3rem;"></i>
+                                    <p class="mt-2 small"><strong>1. Abrir</strong><br>WhatsApp</p>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-3">
+                                    <i class="bi bi-paperclip text-primary" style="font-size: 3rem;"></i>
+                                    <p class="mt-2 small"><strong>2. Anexar</strong><br>PDF (📎)</p>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-3">
+                                    <i class="bi bi-send text-info" style="font-size: 3rem;"></i>
+                                    <p class="mt-2 small"><strong>3. Enviar</strong><br>Documento</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="bi bi-lightbulb"></i> 
+                            <strong>Dica:</strong> O ficheiro está na pasta <strong>Downloads</strong>
+                        </div>
+                        
+                        <div class="text-center">
+                            <button onclick="openWhatsAppApp()" class="btn btn-success btn-lg">
+                                <i class="bi bi-whatsapp"></i> Abrir WhatsApp
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        const backdrop = document.createElement('div');
+        backdrop.className = 'modal-backdrop fade show';
+        backdrop.onclick = () => {
+            modal.remove();
+            backdrop.remove();
+        };
+        document.body.appendChild(backdrop);
+    }
+    
+    function openWhatsAppApp() {
+        // Try WhatsApp app first
+        window.location.href = 'whatsapp://';
+        
+        // Fallback to web version
+        setTimeout(() => {
+            window.open('https://web.whatsapp.com/', '_blank');
+        }, 1000);
+        
+        closeModal();
+    }
+    
+    function showLoadingOverlay(show) {
+        const overlay = document.getElementById('loadingOverlay');
+        overlay.style.display = show ? 'flex' : 'none';
+    }
+    
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            showToast('Link copiado para a área de transferência!', 'success');
+        }).catch(() => {
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            showToast('Link copiado!', 'success');
+        });
+    }
+    
+    function showToast(message, type = 'info') {
+        // Create toast notification
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type === 'success' ? 'success' : 'info'} position-fixed`;
+        toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        toast.innerHTML = `
+            <i class="bi bi-${type === 'success' ? 'check-circle' : 'info-circle'}"></i>
+            ${message}
+            <button type="button" class="btn-close float-end" onclick="this.parentElement.remove()"></button>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            if (toast.parentElement) {
+                toast.remove();
+            }
+        }, 3000);
+    }
+    
+    function showShareModal(options) {
+        // Create modal for share options
+        const modal = document.createElement('div');
+        modal.className = 'modal fade show';
+        modal.style.display = 'block';
+        modal.innerHTML = `
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Partilhar Resultados</h5>
+                        <button type="button" class="btn-close" onclick="this.closest('.modal').remove()"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="d-grid gap-2">
+                            ${options.map(option => `
+                                <button class="btn btn-outline-secondary d-flex align-items-center gap-2" 
+                                        style="color: ${option.color}; border-color: ${option.color};"
+                                        onclick="${option.action ? option.action.toString().replace('function', 'function temp') + '; temp(); this.closest(\'.modal\').remove();' : `window.open('${option.url}'); this.closest('.modal').remove();`}">
+                                    <i class="${option.icon}"></i>
+                                    ${option.name}
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Add backdrop
+        const backdrop = document.createElement('div');
+        backdrop.className = 'modal-backdrop fade show';
+        backdrop.onclick = () => {
+            modal.remove();
+            backdrop.remove();
+        };
+        document.body.appendChild(backdrop);
+    }
+    
+    // Print functionality for PDF generation
+    function printResults() {
+        window.print();
+    }
+    
+    // Handle PDF generation
+    document.querySelector('.btn-pdf')?.addEventListener('click', function(e) {
+        document.getElementById('loadingOverlay').style.display = 'flex';
+        
+        // Hide loading after PDF loads (or timeout)
+        setTimeout(() => {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }, 2000);
+    });
+</script>
+{% endblock %}

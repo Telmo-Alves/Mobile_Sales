@@ -16,7 +16,7 @@
 
     <!-- Menu Grid -->
     <div class="row">
-        <!-- Artigos Section - MOVED TO FIRST -->
+        <!-- Artigos Section - FIRST -->
         <div class="col-12 mb-3">
             <h4 class="text-primary">
                 <i class="bi bi-box-seam-fill"></i> Artigos e Stock
@@ -24,22 +24,13 @@
         </div>
 
         <div class="col-lg-3 col-md-4 col-6 mb-4">
-            <div class="card menu-card" onclick="window.location.href='{{ url_for('dashboard.artigos') }}'">
+            <div class="card menu-card" onclick="window.location.href='{{ url_for('existencias.existencias') }}'">
                 <div class="card-body text-center">
-                    <i class="bi bi-box-seam text-primary"></i>
-                    <h5 class="mt-2">Listar Artigos</h5>
+                    <i class="bi bi-search text-success"></i>
+                    <h5 class="mt-2">Existências</h5>
                 </div>
             </div>
         </div>
-
-				<div class="col-lg-3 col-md-4 col-6 mb-4">
-						<div class="card menu-card" onclick="window.location.href='{{ url_for('existencias.existencias') }}'">
-								<div class="card-body text-center">
-										<i class="bi bi-search text-success"></i>
-										<h5 class="mt-2">Existências</h5>
-								</div>
-						</div>
-				</div>
 
         <div class="col-lg-3 col-md-4 col-6 mb-4">
             <div class="card menu-card" onclick="alert('Funcionalidade em desenvolvimento')">
@@ -59,20 +50,36 @@
             </div>
         </div>
 
+        <!-- Gestão de Clientes Section - MOVED BEFORE VENDAS -->
+        <div class="col-12 mb-3 mt-3">
+            <h4 class="text-primary">
+                <i class="bi bi-people-fill"></i> Gestão de Clientes
+            </h4>
+        </div>
+
+        <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="card menu-card" onclick="window.location.href='{{ url_for('dashboard.mapabordocli') }}'">
+                <div class="card-body text-center">
+                    <i class="bi bi-person-lines-fill text-warning"></i>
+                    <h5 class="mt-2">Mapa de Bordo</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="card menu-card" onclick="alert('Funcionalidade em desenvolvimento')">
+                <div class="card-body text-center">
+                    <i class="bi bi-credit-card text-danger"></i>
+                    <h5 class="mt-2">Conta Corrente</h5>
+                </div>
+            </div>
+        </div>
+
         <!-- Vendas Section -->
         <div class="col-12 mb-3 mt-3">
             <h4 class="text-primary">
                 <i class="bi bi-cart-fill"></i> Vendas e Pedidos
             </h4>
-        </div>
-        
-        <div class="col-lg-3 col-md-4 col-6 mb-4">
-            <div class="card menu-card" onclick="window.location.href='{{ url_for('pedidos.novo_pedido') }}'">
-                <div class="card-body text-center">
-                    <i class="bi bi-cart-plus text-success"></i>
-                    <h5 class="mt-2">Novo Pedido</h5>
-                </div>
-            </div>
         </div>
 
         <div class="col-lg-3 col-md-4 col-6 mb-4">
@@ -87,63 +94,12 @@
         <div class="col-lg-3 col-md-4 col-6 mb-4">
             <div class="card menu-card" onclick="alert('Funcionalidade em desenvolvimento')">
                 <div class="card-body text-center">
-                    <i class="bi bi-pencil-square text-warning"></i>
-                    <h5 class="mt-2">Alterar Pedido</h5>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-3 col-md-4 col-6 mb-4">
-            <div class="card menu-card" onclick="alert('Funcionalidade em desenvolvimento')">
-                <div class="card-body text-center">
                     <i class="bi bi-file-earmark-text text-info"></i>
-                    <h5 class="mt-2">Orçamentos</h5>
+                    <h5 class="mt-2">Cotações</h5>
                 </div>
             </div>
         </div>
 
-        <!-- Clientes Section -->
-        <div class="col-12 mb-3 mt-3">
-            <h4 class="text-primary">
-                <i class="bi bi-people-fill"></i> Gestão de Clientes
-            </h4>
-        </div>
-
-        <div class="col-lg-3 col-md-4 col-6 mb-4">
-            <div class="card menu-card" onclick="window.location.href='{{ url_for('dashboard.clientes') }}'">
-                <div class="card-body text-center">
-                    <i class="bi bi-people text-primary"></i>
-                    <h5 class="mt-2">Listar Clientes</h5>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-3 col-md-4 col-6 mb-4">
-            <div class="card menu-card" onclick="alert('Funcionalidade em desenvolvimento')">
-                <div class="card-body text-center">
-                    <i class="bi bi-person-plus text-success"></i>
-                    <h5 class="mt-2">Novo Cliente</h5>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-3 col-md-4 col-6 mb-4">
-            <div class="card menu-card" onclick="alert('Funcionalidade em desenvolvimento')">
-                <div class="card-body text-center">
-                    <i class="bi bi-person-lines-fill text-warning"></i>
-                    <h5 class="mt-2">Ficha Cliente</h5>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-3 col-md-4 col-6 mb-4">
-            <div class="card menu-card" onclick="alert('Funcionalidade em desenvolvimento')">
-                <div class="card-body text-center">
-                    <i class="bi bi-credit-card text-danger"></i>
-                    <h5 class="mt-2">Conta Corrente</h5>
-                </div>
-            </div>
-        </div>
 
         <!-- Relatórios Section -->
         <div class="col-12 mb-3 mt-3">
