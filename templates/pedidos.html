@@ -326,7 +326,7 @@
             <small>Consulta de pedidos registados no sistema</small>
         </div>
 
-        <a href="{{ url_for('menu') }}" class="btn-voltar">
+        <a href="{{ url_for('dashboard.menu') }}" class="btn-voltar">
             <i class="bi bi-arrow-left"></i> Voltar ao Menu
         </a>
 
@@ -441,7 +441,7 @@
         btn.innerHTML = '<i class="bi bi-hourglass-split"></i> A anular...';
         btn.disabled = true;
         
-        fetch('{{ url_for("anular_pedido") }}', {
+        fetch('{{ url_for("pedidos.anular_pedido") }}', {
             method: 'POST',
             body: form
         })

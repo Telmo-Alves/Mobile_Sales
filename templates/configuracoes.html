@@ -185,7 +185,7 @@
             {% endif %}
         {% endwith %}
 
-        <form method="POST" action="{{ url_for('configuracoes') }}">
+        <form method="POST" action="{{ url_for('dashboard.configuracoes') }}">
             <div class="config-section">
                 <h5><i class="bi bi-server"></i> Configuração do Firebird</h5>
                 
@@ -293,7 +293,7 @@
                     <i class="bi bi-check-circle"></i> Guardar
                 </button>
                 
-                <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+                <a href="{{ url_for('dashboard.dashboard') }}" class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i> Cancelar
                 </a>
             </div>
@@ -317,7 +317,7 @@
         btn.innerHTML = '<i class="bi bi-hourglass-split"></i> A testar...';
         btn.disabled = true;
 
-        fetch('{{ url_for("configuracoes") }}', {
+        fetch('{{ url_for("dashboard.configuracoes") }}', {
             method: 'POST',
             body: formData
         })

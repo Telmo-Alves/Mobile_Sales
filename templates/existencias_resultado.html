@@ -762,7 +762,7 @@
 {% block content %}
 <div class="container-fluid">
     <div class="text-center mb-3">
-        <a href="{{ url_for('menu') }}" class="btn btn-voltar" style="width: 214px; font-size: 22px;">
+        <a href="{{ url_for('dashboard.menu') }}" class="btn btn-voltar" style="width: 214px; font-size: 22px;">
             <i class="bi bi-grid-3x3-gap"></i> MENU
         </a>
     </div>
@@ -774,7 +774,7 @@
                 <small>Código: {{ codigo_pesquisa }}</small>
             </div>
             <div class="col-md-4 text-md-end">
-                <a href="{{ url_for('existencias') }}" class="btn btn-light btn-sm">
+                <a href="{{ url_for('existencias.existencias') }}" class="btn btn-light btn-sm">
                     <i class="bi bi-arrow-left"></i> Nova Consulta
                 </a>
             </div>
@@ -842,7 +842,7 @@
                         
                         {% if codigo_substituto and codigo_substituto != '' %}
                             <div class="substituto-info">
-                                <a href="{{ url_for('existencias_detalhes', codigo=codigo_substituto) }}?enc_forn={{ enc_forn }}" class="substituto-link">
+                                <a href="{{ url_for('existencias.existencias_detalhes', codigo=codigo_substituto) }}?enc_forn={{ enc_forn }}" class="substituto-link">
                                     <i class="bi bi-arrow-repeat"></i> Substituto: {{ codigo_substituto }}
                                 </a>
                             </div>

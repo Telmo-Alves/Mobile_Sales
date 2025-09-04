@@ -133,10 +133,10 @@
 <div class="container-fluid">
     <!-- Botão voltar -->
     <div class="mb-3">
-        <a href="{{ url_for('existencias') }}" class="btn btn-outline-primary">
+        <a href="{{ url_for('existencias.existencias') }}" class="btn btn-outline-primary">
             <i class="bi bi-arrow-left"></i> Voltar à Pesquisa
         </a>
-        <a href="{{ url_for('menu') }}" class="btn btn-outline-secondary">
+        <a href="{{ url_for('dashboard.menu') }}" class="btn btn-outline-secondary">
             <i class="bi bi-grid-3x3-gap"></i> Menu
         </a>
     </div>
@@ -283,7 +283,7 @@
                 <p class="text-muted">Este artigo não tem stock disponível em nenhum lote</p>
                 
                 {% if enc_forn == 'S' %}
-                    <a href="{{ url_for('novo_pedido') }}?artigo={{ info_artigo[0] }}" class="btn btn-success mt-3">
+                    <a href="{{ url_for('pedidos.novo_pedido') }}?artigo={{ info_artigo[0] }}" class="btn btn-success mt-3">
                         <i class="bi bi-cart-plus"></i> Criar Encomenda
                     </a>
                 {% endif %}
@@ -311,7 +311,7 @@
             </h4>
             <p>O código solicitado não existe na base de dados.</p>
             <hr>
-            <a href="{{ url_for('existencias') }}" class="btn btn-primary">
+            <a href="{{ url_for('existencias.existencias') }}" class="btn btn-primary">
                 <i class="bi bi-search"></i> Voltar à Pesquisa
             </a>
         </div>

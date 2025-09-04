@@ -166,7 +166,7 @@
 {% block content %}
 <div class="container-fluid">
     <div class="text-center mb-3">
-        <a href="{{ url_for('existencias') }}" class="btn btn-secondary">
+        <a href="{{ url_for('existencias.existencias') }}" class="btn btn-secondary">
             <i class="bi bi-arrow-left"></i> Voltar às Existências
         </a>
     </div>
@@ -186,7 +186,7 @@
         </div>
         {% endif %}
 
-        <form method="POST" action="{{ url_for('validar_pedido') }}" onsubmit="return validarFormulario()">
+        <form method="POST" action="{{ url_for('pedidos.validar_pedido') }}" onsubmit="return validarFormulario()">
             <!-- Cliente -->
             <div class="form-group">
                 <label class="form-label" for="cliente">
@@ -306,7 +306,7 @@
                 <button type="submit" class="btn btn-primary">
                     <i class="bi bi-check-circle"></i> Validar Pedido
                 </button>
-                <a href="{{ url_for('menu') }}" class="btn btn-secondary">
+                <a href="{{ url_for('dashboard.menu') }}" class="btn btn-secondary">
                     <i class="bi bi-grid-3x3-gap"></i> Menu
                 </a>
             </div>

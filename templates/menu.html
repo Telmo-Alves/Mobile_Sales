@@ -24,7 +24,7 @@
         </div>
 
         <div class="col-lg-3 col-md-4 col-6 mb-4">
-            <div class="card menu-card" onclick="window.location.href='{{ url_for('artigos') }}'">
+            <div class="card menu-card" onclick="window.location.href='{{ url_for('dashboard.artigos') }}'">
                 <div class="card-body text-center">
                     <i class="bi bi-box-seam text-primary"></i>
                     <h5 class="mt-2">Listar Artigos</h5>
@@ -33,7 +33,7 @@
         </div>
 
 				<div class="col-lg-3 col-md-4 col-6 mb-4">
-						<div class="card menu-card" onclick="window.location.href='{{ url_for('existencias') }}'">
+						<div class="card menu-card" onclick="window.location.href='{{ url_for('existencias.existencias') }}'">
 								<div class="card-body text-center">
 										<i class="bi bi-search text-success"></i>
 										<h5 class="mt-2">Existências</h5>
@@ -67,7 +67,7 @@
         </div>
         
         <div class="col-lg-3 col-md-4 col-6 mb-4">
-            <div class="card menu-card" onclick="window.location.href='{{ url_for('novo_pedido') }}'">
+            <div class="card menu-card" onclick="window.location.href='{{ url_for('pedidos.novo_pedido') }}'">
                 <div class="card-body text-center">
                     <i class="bi bi-cart-plus text-success"></i>
                     <h5 class="mt-2">Novo Pedido</h5>
@@ -76,7 +76,7 @@
         </div>
 
         <div class="col-lg-3 col-md-4 col-6 mb-4">
-            <div class="card menu-card" onclick="window.location.href='{{ url_for('pedidos') }}'">
+            <div class="card menu-card" onclick="window.location.href='{{ url_for('pedidos.pedidos') }}'">
                 <div class="card-body text-center">
                     <i class="bi bi-list-check text-primary"></i>
                     <h5 class="mt-2">Listar Pedidos</h5>
@@ -110,7 +110,7 @@
         </div>
 
         <div class="col-lg-3 col-md-4 col-6 mb-4">
-            <div class="card menu-card" onclick="window.location.href='{{ url_for('clientes') }}'">
+            <div class="card menu-card" onclick="window.location.href='{{ url_for('dashboard.clientes') }}'">
                 <div class="card-body text-center">
                     <i class="bi bi-people text-primary"></i>
                     <h5 class="mt-2">Listar Clientes</h5>
@@ -153,7 +153,7 @@
         </div>
 
         <div class="col-lg-3 col-md-4 col-6 mb-4">
-            <div class="card menu-card" onclick="window.location.href='{{ url_for('estatisticas') }}'">
+            <div class="card menu-card" onclick="window.location.href='{{ url_for('dashboard.estatisticas') }}'">
                 <div class="card-body text-center">
                     <i class="bi bi-bar-chart-line text-success"></i>
                     <h5 class="mt-2">Estatísticas</h5>
@@ -196,7 +196,7 @@
         </div>
 
         <div class="col-lg-3 col-md-4 col-6 mb-4">
-            <div class="card menu-card" onclick="window.location.href='{{ url_for('dashboard') }}'">
+            <div class="card menu-card" onclick="window.location.href='{{ url_for('dashboard.dashboard') }}'">
                 <div class="card-body text-center">
                     <i class="bi bi-bell text-danger"></i>
                     <h5 class="mt-2">Avisos</h5>
@@ -240,7 +240,7 @@
 
         {% if session.nivel_acesso >= 2 %}
         <div class="col-lg-3 col-md-4 col-6 mb-4">
-            <div class="card menu-card" onclick="window.location.href='{{ url_for('configuracoes') }}'">
+            <div class="card menu-card" onclick="window.location.href='{{ url_for('dashboard.configuracoes') }}'">
                 <div class="card-body text-center">
                     <i class="bi bi-sliders text-warning"></i>
                     <h5 class="mt-2">Configurações</h5>
@@ -269,7 +269,7 @@
 
 
         <div class="col-lg-3 col-md-4 col-6 mb-4">
-            <div class="card menu-card" onclick="window.location.href='{{ url_for('logout') }}'">
+            <div class="card menu-card" onclick="window.location.href='{{ url_for('auth.logout') }}'">
                 <div class="card-body text-center">
                     <i class="bi bi-box-arrow-right text-danger"></i>
                     <h5 class="mt-2">Sair</h5>

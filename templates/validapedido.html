@@ -306,7 +306,7 @@
             </button>
             
             {% if validacoes.pode_validar %}
-            <form method="POST" action="{{ url_for('registar_pedido') }}" style="display: inline;">
+            <form method="POST" action="{{ url_for('pedidos.registar_pedido') }}" style="display: inline;">
                 <button type="submit" class="btn btn-validar" onclick="return confirmarPedido()">
                     <i class="bi bi-check-circle"></i> Validar
                 </button>

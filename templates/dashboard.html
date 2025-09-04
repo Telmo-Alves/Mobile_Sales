@@ -115,7 +115,7 @@
                                                         <h6>Detalhes do Pedido #{{ npedido }}</h6>
                                                         <div class="row mt-3">
                                                             <div class="col-md-6">
-                                                                <a href="{{ url_for('pedidos') }}" 
+                                                                <a href="{{ url_for('pedidos.pedidos') }}" 
                                                                    class="btn btn-sm btn-primary">
                                                                     <i class="bi bi-eye"></i> Ver Pedido
                                                                 </a>
@@ -126,7 +126,7 @@
                                             {% endif %}
                                             
                                             <div class="mt-3 d-flex gap-2">
-                                                <a href="{{ url_for('marcar_aviso_lido', msg_id=msg_id) }}" 
+                                                <a href="{{ url_for('dashboard.marcar_aviso_lido', msg_id=msg_id) }}" 
                                                    class="btn btn-success btn-sm">
                                                     <i class="bi bi-check-circle"></i> Marcar como Lido
                                                 </a>
@@ -152,7 +152,7 @@
                             <i class="bi bi-check-circle text-success" style="font-size: 4rem;"></i>
                             <h4 class="mt-3">Sem avisos pendentes</h4>
                             <p class="text-muted">Todos os avisos foram processados</p>
-                            <a href="{{ url_for('menu') }}" class="btn btn-primary mt-3">
+                            <a href="{{ url_for('dashboard.menu') }}" class="btn btn-primary mt-3">
                                 <i class="bi bi-grid-3x3-gap"></i> Ir para o Menu
                             </a>
                         </div>
@@ -174,22 +174,22 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-3 col-6 mb-3">
-                            <a href="{{ url_for('novo_pedido') }}" class="btn btn-success w-100 btn-custom">
+                            <a href="{{ url_for('pedidos.novo_pedido') }}" class="btn btn-success w-100 btn-custom">
                                 <i class="bi bi-plus-circle"></i><br>Novo Pedido
                             </a>
                         </div>
                         <div class="col-md-3 col-6 mb-3">
-                            <a href="{{ url_for('clientes') }}" class="btn btn-info w-100 btn-custom text-white">
+                            <a href="{{ url_for('dashboard.clientes') }}" class="btn btn-info w-100 btn-custom text-white">
                                 <i class="bi bi-person-plus"></i><br>Novo Cliente
                             </a>
                         </div>
                         <div class="col-md-3 col-6 mb-3">
-                            <a href="{{ url_for('artigos') }}" class="btn btn-warning w-100 btn-custom">
+                            <a href="{{ url_for('dashboard.artigos') }}" class="btn btn-warning w-100 btn-custom">
                                 <i class="bi bi-box-seam"></i><br>Ver Artigos
                             </a>
                         </div>
                         <div class="col-md-3 col-6 mb-3">
-                            <a href="{{ url_for('estatisticas') }}" class="btn btn-primary w-100 btn-custom">
+                            <a href="{{ url_for('dashboard.estatisticas') }}" class="btn btn-primary w-100 btn-custom">
                                 <i class="bi bi-graph-up"></i><br>Estatísticas
                             </a>
                         </div>
@@ -205,7 +205,7 @@
         if (confirm('Tem certeza que deseja marcar todos os avisos como lidos?')) {
             // Aqui implementaria a lógica para marcar todos como lidos
             {% for aviso in avisos %}
-                window.location.href = "{{ url_for('marcar_aviso_lido', msg_id=aviso[1]) }}";
+                window.location.href = "{{ url_for('dashboard.marcar_aviso_lido', msg_id=aviso[1]) }}";
             {% endfor %}
         }
     }

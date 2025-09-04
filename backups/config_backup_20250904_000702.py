@@ -11,7 +11,7 @@ FIREBIRD_CONFIG = {
 # Configuração dos Armazéns
 WAREHOUSE_CONFIG = {
     'arm_ini': 3,    # Armazém inicial
-    'arm_fim': 5   # Armazém final
+    'arm_fim': 4   # Armazém final
 }
 
 # Configuração Flask

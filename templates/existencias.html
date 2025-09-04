@@ -103,7 +103,7 @@
 
     <!-- Formulário de Filtros -->
     <div class="filter-card">
-        <form method="POST" action="{{ url_for('existencias_consulta') }}" id="formExistencias">
+        <form method="POST" action="{{ url_for('existencias.existencias_consulta') }}" id="formExistencias">
             
             <!-- Seção 1: Tipo de Artigo e Composição -->
             <div class="filter-section">
@@ -237,7 +237,7 @@
                         <i class="bi bi-x-circle"></i> Limpar
                     </button>
                     
-                    <a href="{{ url_for('menu') }}" class="btn btn-outline-primary btn-action">
+                    <a href="{{ url_for('dashboard.menu') }}" class="btn btn-outline-primary btn-action">
                         <i class="bi bi-grid-3x3-gap"></i> Menu
                     </a>
                 </div>
@@ -289,7 +289,7 @@
 <script>
     function limparFiltros() {
         if (confirm('Deseja limpar todos os filtros guardados?')) {
-            window.location.href = "{{ url_for('limpar_filtros_existencias') }}";
+            window.location.href = "{{ url_for('existencias.limpar_filtros_existencias') }}";
         }
     }
 
