@@ -4,7 +4,7 @@ Stock/inventory routes for Mobile Sales application
 
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, current_app
 from ..utils import login_required
-from ..database import existencias_repo, laboratorio_repo
+from ..database import existencias_repo, laboratorio_repo, user_preferences_repo
 from ..database.connection import get_db_connection
 
 existencias_bp = Blueprint('existencias', __name__)
@@ -49,16 +49,23 @@ def formar_codigo_artigo(tipo_art, tipo_ne, n_cabos, composicao, tipo_processo, 
 def existencias():
     """Página de consulta de existências/stock"""
     
-    # Recuperar filtros guardados na sessão (se existirem)
-    filtros_guardados = {
-        'tipo_artigo': session.get('filtro_tipo_artigo', ''),
-        'tipo_ne': session.get('filtro_tipo_ne', ''),
-        'n_cabos': session.get('filtro_n_cabos', ''),
-        'composicao': session.get('filtro_composicao', ''),
-        'tipo_processo': session.get('filtro_tipo_processo', '*'),
-        'enc_forn': session.get('filtro_enc_forn', 'S'),
-        'utilizacao': session.get('filtro_utilizacao', '')
-    }
+    # Get user ID from session
+    vendedor_id = session.get('vendedor', 0)
+    
+    # Recuperar filtros guardados para este utilizador
+    filtros_guardados = user_preferences_repo.get_user_filters(vendedor_id, 'existencias')
+    
+    # Set default values if no saved filters
+    if not filtros_guardados:
+        filtros_guardados = {
+            'tipo_artigo': '',
+            'tipo_ne': '',
+            'n_cabos': '',
+            'composicao': '',
+            'tipo_processo': '*',
+            'enc_forn': 'S',
+            'utilizacao': ''
+        }
     
     # Dados para os dropdowns
     tipo_artigo = []
@@ -153,14 +160,22 @@ def existencias_consulta():
     utilizacao = request.form.get('utilizacao', '')
     action = request.form.get('action', 'consultar')
     
-    # Guardar filtros na sessão para reutilização
-    session['filtro_tipo_artigo'] = tipo_art
-    session['filtro_tipo_ne'] = tipo_ne
-    session['filtro_n_cabos'] = n_cabos
-    session['filtro_composicao'] = composicao
-    session['filtro_tipo_processo'] = tipo_processo
-    session['filtro_enc_forn'] = enc_forn
-    session['filtro_utilizacao'] = utilizacao
+    # Get user ID from session
+    vendedor_id = session.get('vendedor', 0)
+    
+    # Guardar filtros na base de dados para este utilizador
+    filtros_para_guardar = {
+        'tipo_artigo': tipo_art,
+        'tipo_ne': tipo_ne,
+        'n_cabos': n_cabos,
+        'composicao': composicao,
+        'tipo_processo': tipo_processo,
+        'enc_forn': enc_forn,
+        'utilizacao': utilizacao
+    }
+    
+    # Save user preferences
+    user_preferences_repo.save_user_filters(vendedor_id, filtros_para_guardar, 'existencias')
     
     # Formar código do artigo
     codigo_artigo = formar_codigo_artigo(tipo_art, tipo_ne, n_cabos, composicao, tipo_processo, utilizacao)
@@ -224,17 +239,18 @@ def existencias_consulta():
 @existencias_bp.route('/limpar_filtros_existencias')
 @login_required
 def limpar_filtros_existencias():
-    """Limpar os filtros guardados na sessão"""
-    # Limpar todos os filtros da sessão
-    session.pop('filtro_tipo_artigo', None)
-    session.pop('filtro_tipo_ne', None)
-    session.pop('filtro_n_cabos', None)
-    session.pop('filtro_composicao', None)
-    session.pop('filtro_tipo_processo', None)
-    session.pop('filtro_enc_forn', None)
-    session.pop('filtro_utilizacao', None)
+    """Limpar os filtros guardados para o utilizador atual"""
+    # Get user ID from session
+    vendedor_id = session.get('vendedor', 0)
     
-    flash('Filtros limpos com sucesso', 'success')
+    # Clear user filters from database
+    success = user_preferences_repo.clear_user_filters(vendedor_id, 'existencias')
+    
+    if success:
+        flash('Filtros limpos com sucesso', 'success')
+    else:
+        flash('Erro ao limpar filtros', 'error')
+    
     return redirect(url_for('existencias.existencias'))
 
 @existencias_bp.route('/existencias/detalhes/<codigo>')

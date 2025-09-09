@@ -12,7 +12,8 @@ from .repositories import (
     RequisicoesRepository,
     LaboratorioRepository,
     ArtigosRepository,
-    ClientesRepository
+    ClientesRepository,
+    UserPreferencesRepository
 )
 
 # Initialize repository instances
@@ -24,6 +25,7 @@ requisicoes_repo = RequisicoesRepository()
 laboratorio_repo = LaboratorioRepository()
 artigos_repo = ArtigosRepository()
 clientes_repo = ClientesRepository()
+user_preferences_repo = UserPreferencesRepository()
 
 __all__ = [
     'get_db_connection',
@@ -35,5 +37,6 @@ __all__ = [
     'requisicoes_repo',
     'laboratorio_repo',
     'artigos_repo',
-    'clientes_repo'
+    'clientes_repo',
+    'user_preferences_repo'
 ]

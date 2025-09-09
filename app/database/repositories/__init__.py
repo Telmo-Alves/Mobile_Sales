@@ -12,6 +12,7 @@ from .requisicoes import RequisicoesRepository
 from .laboratorio import LaboratorioRepository
 from .artigos import ArtigosRepository
 from .clientes import ClientesRepository
+from .user_preferences import UserPreferencesRepository
 
 __all__ = [
     'BaseRepository',
@@ -22,5 +23,6 @@ __all__ = [
     'RequisicoesRepository',
     'LaboratorioRepository',
     'ArtigosRepository',
-    'ClientesRepository'
+    'ClientesRepository',
+    'UserPreferencesRepository'
 ]

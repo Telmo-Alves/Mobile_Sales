@@ -19,12 +19,13 @@ def create_app():
     app.permanent_session_lifetime = timedelta(hours=8)
     
     # Register blueprints
-    from .routes import auth_bp, dashboard_bp, existencias_bp, pedidos_bp, api_bp
+    from .routes import auth_bp, dashboard_bp, existencias_bp, pedidos_bp, cotacoes_bp, api_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(existencias_bp)
     app.register_blueprint(pedidos_bp)
+    app.register_blueprint(cotacoes_bp)
     app.register_blueprint(api_bp, url_prefix='/api')
     
     return app

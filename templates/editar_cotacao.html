@@ -1,0 +1,521 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Cotação #{{ cotacao.ID }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .editar-cotacao-container {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-top: 20px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+    }
+
+    .editar-cotacao-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .cotacao-info {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 25px;
+    }
+
+    .info-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .info-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #6c757d;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+    }
+
+    .info-value {
+        font-size: 14px;
+        font-weight: 500;
+        color: #495057;
+    }
+
+    .itens-section {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 25px;
+    }
+
+    .itens-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .itens-grid {
+        display: grid;
+        gap: 15px;
+    }
+
+    .item-card {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 15px;
+        position: relative;
+    }
+
+    .item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .item-codigo {
+        font-weight: bold;
+        color: #007bff;
+        font-size: 16px;
+    }
+
+    .item-remove {
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 25px;
+        height: 25px;
+        font-size: 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .item-remove:hover {
+        background: #c82333;
+    }
+
+    .item-body {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px;
+    }
+
+    .item-field {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .item-field-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: #6c757d;
+        text-transform: uppercase;
+        margin-bottom: 3px;
+    }
+
+    .item-field-value {
+        font-size: 13px;
+        color: #495057;
+    }
+
+    .novo-item-form {
+        background: #e3f2fd;
+        border: 2px dashed #90caf9;
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 20px;
+        display: none;
+    }
+
+    .novo-item-form.show {
+        display: block;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 5px;
+    }
+
+    .form-control, .form-select {
+        padding: 10px;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+
+    .form-control:focus, .form-select:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+    }
+
+    .btn-primary { background: #007bff; color: white; }
+    .btn-success { background: #28a745; color: white; }
+    .btn-secondary { background: #6c757d; color: white; }
+    .btn-outline-primary { background: transparent; color: #007bff; border: 1px solid #007bff; }
+
+    .btn:hover {
+        transform: translateY(-1px);
+        filter: brightness(110%);
+    }
+
+    .btn-outline-primary:hover {
+        background: #007bff;
+        color: white;
+    }
+
+    .actions-bar {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #dee2e6;
+    }
+
+    .status-select {
+        padding: 8px 15px;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        background: white;
+    }
+
+    .valor-total {
+        font-size: 18px;
+        font-weight: bold;
+        color: #28a745;
+        text-align: right;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin-top: 20px;
+    }
+
+    @media screen and (max-width: 768px) {
+        .editar-cotacao-header {
+            flex-direction: column;
+            gap: 15px;
+            text-align: center;
+        }
+        
+        .info-row, .item-body, .form-row {
+            grid-template-columns: 1fr;
+        }
+        
+        .actions-bar {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="editar-cotacao-container">
+        <div class="editar-cotacao-header">
+            <div>
+                <h4><i class="bi bi-pencil-square"></i> Editar Cotação #{{ cotacao.ID }}</h4>
+                <small>Gerir itens e status da cotação</small>
+            </div>
+            <div>
+                <select id="statusCotacao" class="status-select" onchange="atualizarStatus({{ cotacao.ID }})">
+                    <option value="PENDENTE" {{ 'selected' if cotacao.STATUS == 'PENDENTE' else '' }}>Pendente</option>
+                    <option value="ENVIADA" {{ 'selected' if cotacao.STATUS == 'ENVIADA' else '' }}>Enviada</option>
+                    <option value="APROVADA" {{ 'selected' if cotacao.STATUS == 'APROVADA' else '' }}>Aprovada</option>
+                    <option value="REJEITADA" {{ 'selected' if cotacao.STATUS == 'REJEITADA' else '' }}>Rejeitada</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Informações da Cotação -->
+        <div class="cotacao-info">
+            <div class="info-row">
+                <div class="info-item">
+                    <span class="info-label">Cliente</span>
+                    <span class="info-value">{{ cotacao.NOME_CLIENTE }} ({{ cotacao.CLIENTE }})</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Data de Criação</span>
+                    <span class="info-value">{{ cotacao.DATA_CRIACAO.strftime('%d/%m/%Y %H:%M') if cotacao.DATA_CRIACAO else '-' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Data de Validade</span>
+                    <span class="info-value">{{ cotacao.DATA_VALIDADE.strftime('%d/%m/%Y') if cotacao.DATA_VALIDADE else '-' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Status</span>
+                    <span class="info-value">{{ cotacao.STATUS }}</span>
+                </div>
+            </div>
+            
+            {% if cotacao.OBSERVACOES %}
+            <div class="info-row">
+                <div class="info-item" style="grid-column: 1 / -1;">
+                    <span class="info-label">Observações</span>
+                    <span class="info-value">{{ cotacao.OBSERVACOES }}</span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Seção de Itens -->
+        <div class="itens-section">
+            <div class="itens-header">
+                <h5><i class="bi bi-list-ul"></i> Itens da Cotação</h5>
+                <button type="button" class="btn btn-primary" onclick="toggleNovoItemForm()">
+                    <i class="bi bi-plus-circle"></i> Adicionar Item
+                </button>
+            </div>
+
+            <!-- Lista de Itens Existentes -->
+            <div class="itens-grid" id="itensGrid">
+                {% for item in itens %}
+                <div class="item-card" id="item-{{ item.ID }}">
+                    <div class="item-header">
+                        <span class="item-codigo">{{ item.CODIGO }}</span>
+                        <button type="button" class="item-remove" onclick="removerItem({{ item.ID }})" title="Remover item">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </div>
+                    <div class="item-body">
+                        <div class="item-field">
+                            <span class="item-field-label">Descrição</span>
+                            <span class="item-field-value">{{ item.DESCRICAO or '-' }}</span>
+                        </div>
+                        <div class="item-field">
+                            <span class="item-field-label">Lote</span>
+                            <span class="item-field-value">{{ item.LOTE or '-' }}</span>
+                        </div>
+                        <div class="item-field">
+                            <span class="item-field-label">Quantidade</span>
+                            <span class="item-field-value">{{ '{:,.2f}'.format(item.QUANTIDADE or 0).replace(',', 'X').replace('.', ',').replace('X', '.') }}</span>
+                        </div>
+                        <div class="item-field">
+                            <span class="item-field-label">Preço Unitário</span>
+                            <span class="item-field-value">{{ '{:,.2f}'.format(item.PRECO_UNITARIO or 0).replace(',', 'X').replace('.', ',').replace('X', '.') }}€</span>
+                        </div>
+                        <div class="item-field">
+                            <span class="item-field-label">Valor Total</span>
+                            <span class="item-field-value">{{ '{:,.2f}'.format(item.VALOR_TOTAL or 0).replace(',', 'X').replace('.', ',').replace('X', '.') }}€</span>
+                        </div>
+                        {% if item.OBSERVACOES %}
+                        <div class="item-field" style="grid-column: 1 / -1;">
+                            <span class="item-field-label">Observações</span>
+                            <span class="item-field-value">{{ item.OBSERVACOES }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Valor Total -->
+            <div class="valor-total">
+                Total da Cotação: <span id="valorTotal">{{ '{:,.2f}'.format(cotacao.VALOR_TOTAL or 0).replace(',', 'X').replace('.', ',').replace('X', '.') }}€</span>
+            </div>
+
+            <!-- Formulário para Novo Item -->
+            <div class="novo-item-form" id="novoItemForm">
+                <h6><i class="bi bi-plus-circle"></i> Novo Item</h6>
+                <form id="formNovoItem">
+                    <input type="hidden" name="cotacao_id" value="{{ cotacao.ID }}">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Código *</label>
+                            <input type="text" name="codigo" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Descrição</label>
+                            <input type="text" name="descricao" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Lote</label>
+                            <input type="text" name="lote" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Quantidade *</label>
+                            <input type="number" name="quantidade" class="form-control" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Preço Unitário (€) *</label>
+                            <input type="number" name="preco" class="form-control" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Observações</label>
+                            <input type="text" name="observacoes" class="form-control">
+                        </div>
+                    </div>
+                    <div style="text-align: center; margin-top: 15px;">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> Adicionar Item
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="toggleNovoItemForm()">
+                            <i class="bi bi-x-circle"></i> Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Ações Gerais -->
+        <div class="actions-bar">
+            <button type="button" class="btn btn-outline-primary" onclick="alert('Geração de PDF em desenvolvimento')">
+                <i class="bi bi-file-earmark-pdf"></i> Gerar PDF
+            </button>
+            <a href="{{ url_for('cotacoes.cotacoes') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar à Lista
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleNovoItemForm() {
+    const form = document.getElementById('novoItemForm');
+    form.classList.toggle('show');
+    
+    if (form.classList.contains('show')) {
+        document.querySelector('input[name="codigo"]').focus();
+    } else {
+        document.getElementById('formNovoItem').reset();
+    }
+}
+
+function atualizarStatus(cotacaoId) {
+    const select = document.getElementById('statusCotacao');
+    const novoStatus = select.value;
+    
+    fetch('{{ url_for("cotacoes.atualizar_status_cotacao") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            cotacao_id: cotacaoId,
+            status: novoStatus
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Status atualizado com sucesso!');
+        } else {
+            alert('Erro ao atualizar status: ' + (data.error || 'Erro desconhecido'));
+        }
+    })
+    .catch(error => {
+        alert('Erro de comunicação: ' + error);
+    });
+}
+
+function removerItem(itemId) {
+    if (!confirm('Tem a certeza que deseja remover este item?')) {
+        return;
+    }
+    
+    fetch('{{ url_for("cotacoes.remover_item_cotacao") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            item_id: itemId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('item-' + itemId).remove();
+            // Recarregar página para atualizar valores
+            location.reload();
+        } else {
+            alert('Erro ao remover item: ' + (data.error || 'Erro desconhecido'));
+        }
+    })
+    .catch(error => {
+        alert('Erro de comunicação: ' + error);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('formNovoItem').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        
+        fetch('{{ url_for("cotacoes.adicionar_item_cotacao") }}', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Item adicionado com sucesso!');
+                // Recarregar página para mostrar o novo item
+                location.reload();
+            } else {
+                alert('Erro ao adicionar item: ' + (data.error || 'Erro desconhecido'));
+            }
+        })
+        .catch(error => {
+            alert('Erro de comunicação: ' + error);
+        });
+    });
+});
+</script>
+{% endblock %}
